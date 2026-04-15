@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Year 5 Mathematics – Adaptive Formative Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --surface: #fffef9;
+    --border: #d4c9b0;
+    --text: #1a1610;
+    --muted: #6b5f4a;
+    --accent: #2d5a3d;
+    --accent-light: #e8f2ec;
+    --warn: #8b3a1a;
+    --warn-light: #fdf0eb;
+    --gold: #c9891a;
+    --gold-light: #fdf5e6;
+    --blue: #1a3a6b;
+    --blue-light: #e8eef8;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 10% 20%, rgba(45,90,61,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(26,58,107,0.06) 0%, transparent 50%);
+  }
+  header {
+    background: var(--text);
+    color: var(--bg);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .header-title { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header-sub { font-size: 0.75rem; opacity: 0.6; font-weight: 300; margin-top: 2px; }
+  .header-badge { background: var(--gold); color: white; font-size: 0.7rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .container { max-width: 920px; margin: 0 auto; padding: 32px 20px 64px; }
+  #strand-selector { animation: fadeUp 0.4s ease both; }
+  .page-heading { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 700; line-height: 1.2; margin-bottom: 8px; }
+  .page-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; line-height: 1.6; }
+  .strand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .strand-card {
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: var(--radius); padding: 24px; cursor: pointer;
+    transition: all 0.2s ease; position: relative; overflow: hidden;
+  }
+  .strand-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--strand-color); }
+  .strand-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--strand-color); }
+  .strand-card:hover .strand-icon { transform: scale(1.1); }
+  .strand-icon { font-size: 2rem; margin-bottom: 12px; display: block; transition: transform 0.2s; }
+  .strand-name { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+  .strand-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+  .strand-questions { font-size: 0.72rem; color: var(--muted); margin-top: 12px; opacity: 0.7; }
+  #quiz-screen { display: none; animation: fadeUp 0.4s ease both; }
+  .quiz-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .back-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .back-btn:hover { border-color: var(--text); color: var(--text); }
+  .progress-wrap { flex: 1; max-width: 400px; }
+  .progress-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; background: var(--strand-color-current, var(--accent)); transition: width 0.4s ease; }
+  .level-badge { font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: 20px; border: 1.5px solid currentColor; letter-spacing: 0.03em; }
+  .level-Y3 { color: var(--warn); }
+  .level-Y4 { color: var(--gold); }
+  .level-Y5 { color: var(--accent); }
+  .level-Y6 { color: var(--blue); }
+  .q-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 32px; box-shadow: var(--shadow); position: relative; }
+  .q-strand-tag { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; margin-bottom: 10px; }
+  .q-descriptor { font-size: 0.72rem; color: var(--muted); background: var(--bg); border-radius: 6px; padding: 8px 12px; margin-bottom: 20px; border-left: 3px solid var(--strand-color-current, var(--accent)); line-height: 1.6; }
+  .q-descriptor strong { font-weight: 600; color: var(--text); }
+  .q-text { font-family: 'Fraunces', serif; font-size: 1.2rem; line-height: 1.55; margin-bottom: 28px; font-weight: 400; }
+  .options-grid { display: grid; gap: 10px; }
+  .option-btn { background: var(--bg); border: 2px solid var(--border); border-radius: 10px; padding: 14px 18px; text-align: left; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; cursor: pointer; transition: all 0.18s ease; display: flex; align-items: center; gap: 14px; line-height: 1.4; }
+  .option-btn:hover:not(:disabled) { border-color: var(--strand-color-current, var(--accent)); background: white; transform: translateX(4px); }
+  .option-label { width: 28px; height: 28px; min-width: 28px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.78rem; transition: all 0.18s; }
+  .option-btn:hover:not(:disabled) .option-label { border-color: var(--strand-color-current, var(--accent)); background: var(--strand-color-current, var(--accent)); color: white; }
+  .option-btn.correct { background: var(--accent-light); border-color: var(--accent); }
+  .option-btn.correct .option-label { background: var(--accent); border-color: var(--accent); color: white; }
+  .option-btn.incorrect { background: var(--warn-light); border-color: var(--warn); }
+  .option-btn.incorrect .option-label { background: var(--warn); border-color: var(--warn); color: white; }
+  .option-btn.reveal-correct { background: var(--accent-light); border-color: var(--accent); opacity: 0.65; }
+  .option-btn:disabled { cursor: default; }
+  .feedback-box { margin-top: 20px; padding: 16px 20px; border-radius: 10px; font-size: 0.88rem; line-height: 1.6; animation: fadeUp 0.3s ease both; }
+  .feedback-box.correct { background: var(--accent-light); border: 1.5px solid var(--accent); color: var(--accent); }
+  .feedback-box.incorrect { background: var(--warn-light); border: 1.5px solid var(--warn); color: var(--warn); }
+  .feedback-title { font-weight: 700; margin-bottom: 4px; font-size: 0.95rem; }
+  .feedback-strategy { margin-top: 6px; font-size: 0.8rem; opacity: 0.85; }
+  .next-btn { margin-top: 14px; background: var(--text); color: white; border: none; border-radius: 8px; padding: 10px 22px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .next-btn:hover { opacity: 0.85; }
+  .streak-row { display: flex; gap: 6px; margin-bottom: 20px; align-items: center; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+  .streak-dot.correct { background: var(--accent); }
+  .streak-dot.incorrect { background: var(--warn); }
+  .streak-label { font-size: 0.72rem; color: var(--muted); margin-left: 4px; }
+  #results-screen { display: none; animation: fadeUp 0.4s ease both; }
+  .results-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 40px; box-shadow: var(--shadow); }
+  .results-header { text-align: center; margin-bottom: 32px; }
+  .results-score { font-family: 'Fraunces', serif; font-size: 4rem; font-weight: 700; line-height: 1; margin-bottom: 8px; }
+  .results-label { color: var(--muted); font-size: 0.9rem; }
+  .results-breakdown { margin-top: 8px; }
+  .breakdown-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; gap: 12px; }
+  .breakdown-item:last-child { border-bottom: none; }
+  .breakdown-q { flex: 1; color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
+  .breakdown-q strong { color: var(--text); font-size: 0.85rem; display: block; margin-bottom: 2px; }
+  .breakdown-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .breakdown-pill { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .pill-Y3 { background: var(--warn-light); color: var(--warn); }
+  .pill-Y4 { background: var(--gold-light); color: var(--gold); }
+  .pill-Y5 { background: var(--accent-light); color: var(--accent); }
+  .pill-Y6 { background: var(--blue-light); color: var(--blue); }
+  .teaching-note { margin-top: 24px; background: var(--bg); border-radius: 10px; padding: 16px 20px; font-size: 0.82rem; line-height: 1.7; }
+  .teaching-note strong { color: var(--accent); }
+  .restart-btn { margin-top: 28px; width: 100%; background: var(--text); color: white; border: none; border-radius: 10px; padding: 14px 32px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .restart-btn:hover { opacity: 0.85; }
+  .level-change-notice { text-align: center; padding: 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; margin-bottom: 16px; animation: fadeUp 0.3s ease both; }
+  .level-up { background: var(--blue-light); color: var(--blue); }
+  .level-down { background: var(--warn-light); color: var(--warn); }
+  .level-same { background: var(--gold-light); color: var(--gold); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-title">Aimebee – Adaptive Mathematics</div>
+    <div class="header-sub">Year 5 Formative Assessment · ACARA V9.0 Aligned</div>
+  </div>
+  <div class="header-badge">Formative</div>
+</header>
+
+<div class="container">
+
+  <div id="strand-selector">
+    <h1 class="page-heading">Choose a Mathematics Strand</h1>
+    <p class="page-sub">
+      Questions are mapped to verified ACARA V9.0 content descriptors across Year 3–6.<br>
+      The difficulty adapts based on your response streak — two errors in a row branches down a year level; two correct in a row branches up.
+    </p>
+    <div class="strand-grid" id="strand-grid"></div>
+  </div>
+
+  <div id="quiz-screen">
+    <div class="quiz-top">
+      <button class="back-btn" onclick="goHome()">← Back to Strands</button>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span id="progress-text">Question 1 of 7</span>
+          <span id="strand-label"></span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+      <div class="level-badge" id="level-badge">Year 5</div>
+    </div>
+    <div id="level-change-area"></div>
+    <div class="streak-row" id="streak-row"></div>
+    <div class="q-card" id="q-card">
+      <div class="q-strand-tag" id="q-strand-tag"></div>
+      <div class="q-descriptor" id="q-descriptor"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options-grid" id="options-grid"></div>
+      <div id="feedback-area"></div>
+    </div>
+  </div>
+
+  <div id="results-screen">
+    <div class="results-card">
+      <div class="results-header">
+        <div class="results-score" id="results-score"></div>
+        <div class="results-label" id="results-label"></div>
+      </div>
+      <h3 style="font-family:'Fraunces',serif;font-size:1.15rem;margin-bottom:16px;">Question-by-Question Summary</h3>
+      <div class="results-breakdown" id="results-breakdown"></div>
+      <div class="teaching-note" id="teaching-note"></div>
+      <button class="restart-btn" onclick="goHome()">Try Another Strand</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  QUESTION BANK — ALL CONTENT DESCRIPTORS VERIFIED AGAINST ACARA V9.0
+//  Source: QCAA Year 5 Mathematics Achievement Standard & Content
+//  Descriptor Alignment document (March 2023) + EP Curriculum Map
+//
+//  YEAR 5 CODES USED:
+//  Number:      AC9M5N01–N09
+//  Algebra:     AC9M5A01–A02 + AC9M5N10
+//  Measurement: AC9M5M01–M04
+//  Space:       AC9M5SP01–SP03
+//  Statistics:  AC9M5ST01–ST03
+//  Probability: AC9M5P01–P02
+//
+//  YEAR 4 BRANCHING: AC9M4N*, AC9M4A*, AC9M4M*, AC9M4SP*, AC9M4ST*, AC9M4P*
+//  YEAR 3 BRANCHING: AC9M3N*, AC9M3A*, AC9M3M*, AC9M3SP*, AC9M3ST*, AC9M3P*
+//  YEAR 6 EXTENSION: AC9M6N*, AC9M6A*, AC9M6M*, AC9M6SP*, AC9M6ST*, AC9M6P*
+// ═══════════════════════════════════════════════════════════════════
+
+const STRANDS = {
+
+  // ─────────────────────────────────────────────────────────────────
+  number: {
+    name: 'Number',
+    icon: '🔢',
+    color: '#2d5a3d',
+    desc: 'Decimals, factors, multiples, fractions, percentages, multiplication & division',
+    questions: {
+
+      Y3: [
+        {
+          id:'N-Y3-1',
+          code:'AC9M3N01',
+          descriptor:'AC9M3N01 – Recognise, represent and order natural numbers using place value to at least 10 000',
+          question:'What is the value of the digit 4 in the number 3 427?',
+          options:[
+            {label:'A',text:'400',correct:true,strategy:'4 is in the hundreds place: 4 × 100 = 400'},
+            {label:'B',text:'4 000',correct:false,strategy:'Confused hundreds with thousands place'},
+            {label:'C',text:'40',correct:false,strategy:'Confused hundreds with tens place'},
+            {label:'D',text:'4',correct:false,strategy:'Read the digit alone without applying its place value'},
+          ],
+          explanation:'In 3 427, the 4 is in the hundreds place: 4 × 100 = 400. Reading from right: ones (7), tens (2), hundreds (4), thousands (3).'
+        },
+        {
+          id:'N-Y3-2',
+          code:'AC9M3N02',
+          descriptor:'AC9M3N02 – Recognise and represent unit fractions and their multiples in different ways; combine fractions with the same denominator to complete the whole',
+          question:'What is ³⁄₈ + ⁵⁄₈?',
+          options:[
+            {label:'A',text:'1 whole (8/8)',correct:true,strategy:'Same denominator: add numerators only; 3 + 5 = 8, and 8/8 = 1'},
+            {label:'B',text:'8/16',correct:false,strategy:'Added both numerators AND denominators — incorrect method for fractions'},
+            {label:'C',text:'2/8',correct:false,strategy:'Subtracted numerators instead of adding'},
+            {label:'D',text:'15/64',correct:false,strategy:'Multiplied numerator by numerator and denominator by denominator — that is for multiplication, not addition'},
+          ],
+          explanation:'When denominators are the same, add only the numerators: 3/8 + 5/8 = 8/8 = 1 whole.'
+        },
+        {
+          id:'N-Y3-3',
+          code:'AC9M3N04',
+          descriptor:'AC9M3N04 – Recall and demonstrate proficiency with multiplication facts for 2, 3, 4, 5 and 10; extend and apply facts to model and solve simple multiplication and division problems',
+          question:'A box holds 5 pencils. There are 7 boxes. How many pencils altogether?',
+          options:[
+            {label:'A',text:'35',correct:true,strategy:'5 × 7 = 35, using a multiplication fact for 5s'},
+            {label:'B',text:'12',correct:false,strategy:'Added 5 + 7 instead of multiplying'},
+            {label:'C',text:'30',correct:false,strategy:'Used 5 × 6 — miscounted the number of boxes'},
+            {label:'D',text:'25',correct:false,strategy:'Used 5 × 5 — applied a square rather than 5 × 7'},
+          ],
+          explanation:'5 pencils × 7 boxes = 35 pencils. This uses the multiplication fact 5 × 7 = 35.'
+        },
+      ],
+
+      Y4: [
+        {
+          id:'N-Y4-1',
+          code:'AC9M4N01',
+          descriptor:'AC9M4N01 – Recognise and extend the application of place value to tenths and hundredths and use the conventions of decimal notation to name and represent decimals',
+          question:'Which decimal is the same as 6 tenths and 3 hundredths?',
+          options:[
+            {label:'A',text:'0.63',correct:true,strategy:'6 tenths = 0.6; 3 hundredths = 0.03; together = 0.63'},
+            {label:'B',text:'6.3',correct:false,strategy:'Placed the 6 in the ones column rather than tenths'},
+            {label:'C',text:'0.063',correct:false,strategy:'Shifted one place too far right — 6 thousandths not tenths'},
+            {label:'D',text:'63',correct:false,strategy:'Removed the decimal point entirely'},
+          ],
+          explanation:'6 tenths is written as 0.6 (one decimal place). 3 hundredths is 0.03 (two decimal places). Together: 0.63.'
+        },
+        {
+          id:'N-Y4-2',
+          code:'AC9M4N03',
+          descriptor:'AC9M4N03 – Recall and demonstrate proficiency with multiplication facts up to 10 × 10 and related division facts; extend and apply facts to develop efficient mental strategies for computation',
+          question:'Which number sentence uses a related division fact for 7 × 8 = 56?',
+          options:[
+            {label:'A',text:'56 ÷ 8 = 7',correct:true,strategy:'Division is the inverse of multiplication — same fact family: 7 × 8 = 56, so 56 ÷ 8 = 7'},
+            {label:'B',text:'56 ÷ 7 = 9',correct:false,strategy:'56 ÷ 7 = 8, not 9 — arithmetic error'},
+            {label:'C',text:'8 × 7 = 54',correct:false,strategy:'Correct multiplication fact but wrong product — 8 × 7 = 56 not 54'},
+            {label:'D',text:'56 − 8 = 7',correct:false,strategy:'Used subtraction instead of division — wrong operation'},
+          ],
+          explanation:'7 × 8 = 56 and 56 ÷ 8 = 7 are in the same multiplication/division fact family. Division is the inverse of multiplication.'
+        },
+        {
+          id:'N-Y4-3',
+          code:'AC9M4N05',
+          descriptor:'AC9M4N05 – Investigate and use the properties of odd and even numbers',
+          question:'Which statement about multiplying two odd numbers is always true?',
+          options:[
+            {label:'A',text:'The product is always odd',correct:true,strategy:'odd × odd = odd always (e.g. 3 × 5 = 15, 7 × 9 = 63)'},
+            {label:'B',text:'The product is always even',correct:false,strategy:'Even products come from even × any number — not odd × odd'},
+            {label:'C',text:'The product can be odd or even',correct:false,strategy:'For odd × odd, the result is always odd — this is a property, not a coincidence'},
+            {label:'D',text:'The product is always a multiple of 4',correct:false,strategy:'Multiples of 4 require at least one even factor — odd × odd never gives a multiple of 4'},
+          ],
+          explanation:'odd × odd = odd always. Example: 3 × 5 = 15 (odd), 7 × 9 = 63 (odd). This is a number property in ACARA V9.'
+        },
+        {
+          id:'N-Y4-4',
+          code:'AC9M4N06',
+          descriptor:'AC9M4N06 – Recognise that fractions and decimals are different ways of representing the same value; identify equivalent fractions in familiar contexts',
+          question:'Which fraction is equivalent to 0.5?',
+          options:[
+            {label:'A',text:'½',correct:true,strategy:'0.5 means 5 tenths = 5/10 = ½; both represent the same amount'},
+            {label:'B',text:'⅕',correct:false,strategy:'⅕ = 0.2, not 0.5 — confused the denominator position'},
+            {label:'C',text:'5/100',correct:false,strategy:'5/100 = 0.05, not 0.5 — decimal place error'},
+            {label:'D',text:'²⁄₅',correct:false,strategy:'²⁄₅ = 0.4, not 0.5'},
+          ],
+          explanation:'0.5 = 5/10 = 1/2. Converting: 5 tenths means 5 out of 10 equal parts, which simplifies to one half.'
+        },
+      ],
+
+      Y5: [
+        {
+          id:'N-Y5-1',
+          code:'AC9M5N01',
+          descriptor:'AC9M5N01 – Interpret, compare and order numbers with more than 2 decimal places, including numbers greater than one, using place value understanding; represent these on a number line',
+          question:'Which set of decimals is correctly ordered from smallest to largest?',
+          options:[
+            {label:'A',text:'0.305, 0.35, 0.4',correct:true,strategy:'Convert to thousandths: 0.305, 0.350, 0.400 — each is larger than the previous'},
+            {label:'B',text:'0.4, 0.35, 0.305',correct:false,strategy:'This is largest to smallest — the order is reversed'},
+            {label:'C',text:'0.35, 0.305, 0.4',correct:false,strategy:'Thought more decimal digits means a larger number — 0.305 < 0.35 when compared using place value'},
+            {label:'D',text:'0.305, 0.4, 0.35',correct:false,strategy:'Treated digits as whole numbers (305, 4, 35) rather than applying place value'},
+          ],
+          explanation:'Use place value: 0.305 = 305 thousandths; 0.350 = 350 thousandths; 0.400 = 400 thousandths. So 0.305 < 0.35 < 0.4.'
+        },
+        {
+          id:'N-Y5-2',
+          code:'AC9M5N02',
+          descriptor:'AC9M5N02 – Express natural numbers as products of their factors, recognise multiples and determine if one number is divisible by another',
+          question:'Which set shows all the factor pairs of 24?',
+          options:[
+            {label:'A',text:'1×24, 2×12, 3×8, 4×6',correct:true,strategy:'Every pair multiplies to give 24; these are all the factor pairs'},
+            {label:'B',text:'1×24, 2×12, 3×8, 5×5',correct:false,strategy:'5 × 5 = 25, not 24 — 5 is not a factor of 24'},
+            {label:'C',text:'2×12, 4×6, 6×4',correct:false,strategy:'Missing the factor pairs that include 1, 3, and 8; also 6×4 repeats 4×6'},
+            {label:'D',text:'1×24, 2×12, 4×6, 6×4',correct:false,strategy:'4×6 and 6×4 are the same factor pair — factors are not ordered'},
+          ],
+          explanation:'Factor pairs of 24: 1×24, 2×12, 3×8, 4×6. Check each: all multiply to 24. 5 is not a factor (24÷5 leaves a remainder).'
+        },
+        {
+          id:'N-Y5-3',
+          code:'AC9M5N04',
+          descriptor:'AC9M5N04 – Recognise that 100% represents the complete whole and use percentages to describe, represent and compare relative size; connect familiar percentages to their decimal and fraction equivalents',
+          question:'Which group correctly shows equivalent forms?',
+          options:[
+            {label:'A',text:'75% = ¾ = 0.75',correct:true,strategy:'75% means 75 out of 100 = 75/100 = ¾ = 0.75 — all equivalent'},
+            {label:'B',text:'25% = ½ = 0.5',correct:false,strategy:'25% = ¼ = 0.25, not ½ which equals 50%'},
+            {label:'C',text:'50% = ⅓ = 0.33',correct:false,strategy:'50% = ½ = 0.5; ⅓ ≈ 33%, not 50%'},
+            {label:'D',text:'10% = ⅒ = 1.0',correct:false,strategy:'10% = 1/10 = 0.1, not 1.0 — 1.0 = 100%'},
+          ],
+          explanation:'75% = 75/100 = 3/4 = 0.75. These are three different ways of expressing the same value using ACARA V9 equivalence language.'
+        },
+        {
+          id:'N-Y5-4',
+          code:'AC9M5N05',
+          descriptor:'AC9M5N05 – Solve problems involving addition and subtraction of fractions with the same or related denominators, using different strategies',
+          question:'What is ⁷⁄₁₀ − ²⁄₅?',
+          options:[
+            {label:'A',text:'³⁄₁₀',correct:true,strategy:'Convert ²⁄₅ to a related denominator: ²⁄₅ = ⁴⁄₁₀; then ⁷⁄₁₀ − ⁴⁄₁₀ = ³⁄₁₀'},
+            {label:'B',text:'⁵⁄₅',correct:false,strategy:'Subtracted numerators and denominators separately — incorrect method'},
+            {label:'C',text:'¹⁄₂',correct:false,strategy:'Subtracted the fractions without finding a common denominator first'},
+            {label:'D',text:'⁹⁄₁₀',correct:false,strategy:'Added the fractions instead of subtracting after converting denominator'},
+          ],
+          explanation:'Related denominators: convert ²⁄₅ to tenths → ²⁄₅ = ⁴⁄₁₀. Then ⁷⁄₁₀ − ⁴⁄₁₀ = ³⁄₁₀.'
+        },
+        {
+          id:'N-Y5-5',
+          code:'AC9M5N06',
+          descriptor:'AC9M5N06 – Solve problems involving multiplication of larger numbers by one- or two-digit numbers, choosing efficient calculation strategies and using digital tools where appropriate; check the reasonableness of answers',
+          question:'A farmer plants 124 rows of corn with 36 plants in each row. About how many plants is that? Which calculation gives a reasonable estimate?',
+          options:[
+            {label:'A',text:'120 × 40 = 4 800',correct:true,strategy:'Round 124 to 120 and 36 to 40 — both are easy to multiply; 120 × 40 = 4 800 is a reasonable estimate'},
+            {label:'B',text:'100 × 30 = 3 000',correct:false,strategy:'Both numbers rounded down too far — underestimates significantly'},
+            {label:'C',text:'130 × 40 = 5 200',correct:false,strategy:'124 rounds to 120 not 130 — over-rounded the first factor'},
+            {label:'D',text:'124 + 36 = 160',correct:false,strategy:'Added instead of multiplied — wrong operation'},
+          ],
+          explanation:'For estimation, round to the nearest easy-to-multiply value: 124 ≈ 120, 36 ≈ 40. So 120 × 40 = 4 800 is a reasonable estimate. (Exact: 124 × 36 = 4 464.)'
+        },
+        {
+          id:'N-Y5-6',
+          code:'AC9M5N07',
+          descriptor:'AC9M5N07 – Solve problems involving division, choosing efficient strategies and using digital tools where appropriate; interpret any remainder according to the context and express results as a whole number, decimal or fraction',
+          question:'235 students need to be placed into groups of 8 for an excursion. How many complete groups can be made, and how many students are left over?',
+          options:[
+            {label:'A',text:'29 complete groups, 3 students left over',correct:true,strategy:'235 ÷ 8 = 29 remainder 3; interpret the remainder in context — 3 students cannot form a complete group'},
+            {label:'B',text:'30 groups',correct:false,strategy:'Rounded up — but the 30th group would only have 3 students, so it is not a complete group'},
+            {label:'C',text:'29.375 groups',correct:false,strategy:'Expressed the result as a decimal — this is not meaningful in the context of counting complete groups of students'},
+            {label:'D',text:'28 complete groups, 11 left over',correct:false,strategy:'Arithmetic error: 8 × 28 = 224, and 235 − 224 = 11; but 8 × 29 = 232 and 235 − 232 = 3'},
+          ],
+          explanation:'235 ÷ 8 = 29 remainder 3. In context: 29 complete groups, with 3 students remaining who need an extra arrangement. AC9M5N07 expects students to interpret remainders in context.'
+        },
+        {
+          id:'N-Y5-7',
+          code:'AC9M5N03',
+          descriptor:'AC9M5N03 – Compare and order fractions with the same and related denominators including mixed numerals, applying knowledge of factors and multiples; represent these fractions on a number line',
+          question:'Which list correctly orders these fractions from smallest to largest? ²⁄₃, ³⁄₄, ⁵⁄₆',
+          options:[
+            {label:'A',text:'²⁄₃, ³⁄₄, ⁵⁄₆',correct:true,strategy:'Common denominator of 12: ²⁄₃=⁸⁄₁₂, ³⁄₄=⁹⁄₁₂, ⁵⁄₆=¹⁰⁄₁₂. So ⁸⁄₁₂ < ⁹⁄₁₂ < ¹⁰⁄₁₂'},
+            {label:'B',text:'⁵⁄₆, ³⁄₄, ²⁄₃',correct:false,strategy:'This is largest to smallest — the order is reversed'},
+            {label:'C',text:'³⁄₄, ²⁄₃, ⁵⁄₆',correct:false,strategy:'Compared numerators or denominators in isolation rather than finding a common denominator'},
+            {label:'D',text:'²⁄₃, ⁵⁄₆, ³⁄₄',correct:false,strategy:'Confused ⁵⁄₆ and ³⁄₄ — ³⁄₄ = ⁹⁄₁₂ and ⁵⁄₆ = ¹⁰⁄₁₂, so ³⁄₄ comes before ⁵⁄₆'},
+          ],
+          explanation:'Convert to a common denominator (12): ²⁄₃=⁸⁄₁₂, ³⁄₄=⁹⁄₁₂, ⁵⁄₆=¹⁰⁄₁₂. Order: ⁸⁄₁₂ < ⁹⁄₁₂ < ¹⁰⁄₁₂ → ²⁄₃ < ³⁄₄ < ⁵⁄₆.'
+        },
+      ],
+
+      Y6: [
+        {
+          id:'N-Y6-1',
+          code:'AC9M6N07',
+          descriptor:'AC9M6N07 – Solve problems that require finding a familiar fraction, decimal or percentage of a quantity, including percentage discounts, choosing efficient calculation strategies',
+          question:'A jacket costs $120 and is discounted by 30%. What is the sale price?',
+          options:[
+            {label:'A',text:'$84',correct:true,strategy:'30% of $120 = $36 discount; $120 − $36 = $84. Or: 70% × $120 = $84 directly'},
+            {label:'B',text:'$36',correct:false,strategy:'Calculated the discount amount ($36) but did not subtract it from the original price'},
+            {label:'C',text:'$90',correct:false,strategy:'Found 25% off ($30) or made an arithmetic error; 30% of 120 = 36, not 30'},
+            {label:'D',text:'$150',correct:false,strategy:'Added the discount instead of subtracting it from the price'},
+          ],
+          explanation:'30% of $120 = 0.30 × 120 = $36 discount. Sale price = $120 − $36 = $84. Alternatively, 70% × $120 = $84.'
+        },
+        {
+          id:'N-Y6-2',
+          code:'AC9M6N05',
+          descriptor:'AC9M6N05 – Solve problems involving addition and subtraction of fractions using knowledge of equivalent fractions',
+          question:'What is ²⁄₃ + ³⁄₄?',
+          options:[
+            {label:'A',text:'1 5/12',correct:true,strategy:'Common denominator 12: ²⁄₃=⁸⁄₁₂, ³⁄₄=⁹⁄₁₂; ⁸⁄₁₂+⁹⁄₁₂=¹⁷⁄₁₂=1⁵⁄₁₂'},
+            {label:'B',text:'⁵⁄₇',correct:false,strategy:'Added numerators (2+3=5) and denominators (3+4=7) separately — incorrect method'},
+            {label:'C',text:'1 whole',correct:false,strategy:'Estimated rather than calculating; ²⁄₃+³⁄₄ > 1 but is not exactly 1'},
+            {label:'D',text:'2 ¹⁄₁₂',correct:false,strategy:'Made an error converting to twelfths: 2/3 = 8/12 not 12/12'},
+          ],
+          explanation:'Find a common denominator: LCM(3,4)=12. ²⁄₃=⁸⁄₁₂, ³⁄₄=⁹⁄₁₂. Sum = ¹⁷⁄₁₂ = 1⁵⁄₁₂.'
+        },
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  algebra: {
+    name: 'Algebra',
+    icon: '🔣',
+    color: '#1a3a6b',
+    desc: 'Number facts as inverse operations, unknown values in equations, factors & multiples patterns',
+    questions: {
+
+      Y3: [
+        {
+          id:'AL-Y3-1',
+          code:'AC9M3A01',
+          descriptor:'AC9M3A01 – Describe, continue and create growing patterns formed by skip counting, initially by 2s, 3s, 5s and 10s from any starting point; use pattern rules to identify missing elements',
+          question:'What are the next two numbers? 15, 18, 21, ___, ___',
+          options:[
+            {label:'A',text:'24, 27',correct:true,strategy:'The pattern increases by 3 each time (skip counting by 3s): 21 + 3 = 24, 24 + 3 = 27'},
+            {label:'B',text:'23, 25',correct:false,strategy:'Added 2 each time — wrong skip value; the pattern increases by 3'},
+            {label:'C',text:'24, 26',correct:false,strategy:'First term is correct (24) but then added 2 instead of 3 for the next term'},
+            {label:'D',text:'25, 30',correct:false,strategy:'Switched from adding 3 to adding 5 — inconsistent rule'},
+          ],
+          explanation:'The rule is +3 each time (skip counting by 3s): 15, 18, 21, 24, 27. Each term is 3 more than the previous.'
+        },
+        {
+          id:'AL-Y3-2',
+          code:'AC9M3A02',
+          descriptor:'AC9M3A02 – Recall and demonstrate proficiency with addition and multiplication facts; recognise the connection between addition and subtraction and use this to develop related subtraction facts',
+          question:'Which number makes this equation true? □ + 17 = 25',
+          options:[
+            {label:'A',text:'8',correct:true,strategy:'Use the inverse: 25 − 17 = 8. Addition and subtraction are inverse operations.'},
+            {label:'B',text:'42',correct:false,strategy:'Added 25 + 17 instead of using subtraction to find the unknown'},
+            {label:'C',text:'7',correct:false,strategy:'Off by one — likely subtracted 25 − 18 or made a calculation error'},
+            {label:'D',text:'18',correct:false,strategy:'Confused the known addend with the unknown — reversed which number to find'},
+          ],
+          explanation:'□ + 17 = 25 → □ = 25 − 17 = 8. Subtraction is the inverse of addition: same fact family.'
+        },
+      ],
+
+      Y4: [
+        {
+          id:'AL-Y4-1',
+          code:'AC9M4A01',
+          descriptor:'AC9M4A01 – Find unknown values in numerical equations involving addition and subtraction, using the properties of numbers and operations',
+          question:'What value of ■ makes this equation balanced? 48 − ■ = 19',
+          options:[
+            {label:'A',text:'29',correct:true,strategy:'Rearrange: ■ = 48 − 19 = 29. Use the inverse relationship between addition and subtraction.'},
+            {label:'B',text:'67',correct:false,strategy:'Added 48 + 19 instead of subtracting — found the wrong unknown'},
+            {label:'C',text:'31',correct:false,strategy:'Subtracted incorrectly: 48 − 17 = 31 — arithmetic error in ones column'},
+            {label:'D',text:'19',correct:false,strategy:'Repeated the known value rather than calculating the unknown'},
+          ],
+          explanation:'48 − ■ = 19, so ■ = 48 − 19 = 29. Check: 48 − 29 = 19 ✓'
+        },
+        {
+          id:'AL-Y4-2',
+          code:'AC9M4A02',
+          descriptor:'AC9M4A02 – Recall and demonstrate proficiency with multiplication facts up to 10 × 10; recognise the connection between multiplication and division to find unknown values',
+          question:'Find the value of △: △ × 9 = 72',
+          options:[
+            {label:'A',text:'8',correct:true,strategy:'72 ÷ 9 = 8. Division is the inverse of multiplication — same fact family.'},
+            {label:'B',text:'9',correct:false,strategy:'Confused with 9 × 9 = 81; 9 is not correct here'},
+            {label:'C',text:'7',correct:false,strategy:'Confused with 7 × 9 = 63 — off by one multiplication fact'},
+            {label:'D',text:'63',correct:false,strategy:'Found 9 × 7 rather than dividing 72 by 9'},
+          ],
+          explanation:'△ × 9 = 72 → △ = 72 ÷ 9 = 8. These are in the same multiplication fact family: 8 × 9 = 72, 72 ÷ 9 = 8, 72 ÷ 8 = 9.'
+        },
+        {
+          id:'AL-Y4-3',
+          code:'AC9M4A01',
+          descriptor:'AC9M4A01 – Find unknown values in numerical equations involving addition and subtraction, using the properties of numbers and operations',
+          question:'Which equation has the same unknown value as 5 + □ = 13?',
+          options:[
+            {label:'A',text:'13 − 5 = □',correct:true,strategy:'Same fact family — rearranging the equation using inverse operation gives 13 − 5 = □ = 8'},
+            {label:'B',text:'13 + 5 = □',correct:false,strategy:'Added both known values — this finds a different unknown (18), not the missing addend'},
+            {label:'C',text:'5 − □ = 13',correct:false,strategy:'Reversed the subtraction — 5 minus a number cannot equal 13'},
+            {label:'D',text:'□ − 13 = 5',correct:false,strategy:'Rearranged incorrectly — this gives □ = 18, not □ = 8'},
+          ],
+          explanation:'5 + □ = 13 and 13 − 5 = □ are in the same fact family. Both give □ = 8. This uses the inverse relationship of addition and subtraction.'
+        },
+      ],
+
+      Y5: [
+        {
+          id:'AL-Y5-1',
+          code:'AC9M5A01',
+          descriptor:'AC9M5A01 – Recognise and explain the connection between multiplication and division as inverse operations and use this to develop families of number facts',
+          question:'Which group shows a complete multiplication and division fact family for 6, 9 and 54?',
+          options:[
+            {label:'A',text:'6×9=54, 9×6=54, 54÷6=9, 54÷9=6',correct:true,strategy:'All four facts use the same three numbers and show both multiplication and division as inverses'},
+            {label:'B',text:'6×9=54, 54÷9=6 only',correct:false,strategy:'Only two facts from the family — a complete fact family has four related equations'},
+            {label:'C',text:'6×9=54, 9×6=54, 54×6=9, 54×9=6',correct:false,strategy:'The last two use multiplication incorrectly — division symbol (÷) is needed, not multiplication (×)'},
+            {label:'D',text:'6+9=15, 15−9=6, 15−6=9, 9+6=15',correct:false,strategy:'This is an addition/subtraction fact family for 6, 9 and 15 — not the correct operation or numbers'},
+          ],
+          explanation:'A multiplication/division fact family for 6, 9, 54 has 4 related facts: 6×9, 9×6, 54÷6, 54÷9. These show that multiplication and division are inverse operations.'
+        },
+        {
+          id:'AL-Y5-2',
+          code:'AC9M5A02',
+          descriptor:'AC9M5A02 – Find unknown values in numerical equations involving multiplication and division using the properties of numbers and operations',
+          question:'What value of n makes this equation true? 8 × n = 104',
+          options:[
+            {label:'A',text:'13',correct:true,strategy:'104 ÷ 8 = 13. Use division as the inverse of multiplication.'},
+            {label:'B',text:'14',correct:false,strategy:'8 × 14 = 112, not 104 — close but one multiplication fact too high'},
+            {label:'C',text:'12',correct:false,strategy:'8 × 12 = 96, not 104 — one multiplication fact too low'},
+            {label:'D',text:'832',correct:false,strategy:'Multiplied 104 × 8 instead of dividing — found 8 × 104, not the unknown factor'},
+          ],
+          explanation:'8 × n = 104, so n = 104 ÷ 8 = 13. Check: 8 × 13 = 104 ✓. Division undoes multiplication.'
+        },
+        {
+          id:'AL-Y5-3',
+          code:'AC9M5N10',
+          descriptor:'AC9M5N10 – Create and use algorithms involving a sequence of steps and decisions and digital tools to experiment with factors, multiples and divisibility; identify, interpret and describe emerging patterns',
+          question:'A student is testing divisibility. They say: "A number is divisible by 6 if it is divisible by both 2 and 3." Which number below is divisible by 6?',
+          options:[
+            {label:'A',text:'54',correct:true,strategy:'54 ÷ 2 = 27 (divisible by 2 — even); 5+4=9 (divisible by 3); therefore 54 ÷ 6 = 9 ✓'},
+            {label:'B',text:'34',correct:false,strategy:'34 is even (÷2) but 3+4=7 which is not divisible by 3; so 34 is not divisible by 6'},
+            {label:'C',text:'51',correct:false,strategy:'51 is odd — not divisible by 2, so it cannot be divisible by 6'},
+            {label:'D',text:'62',correct:false,strategy:'62 is even (÷2) but 6+2=8 which is not divisible by 3; so 62 is not divisible by 6'},
+          ],
+          explanation:'Divisibility rule for 6: a number must be divisible by BOTH 2 (even) AND 3 (digit sum divisible by 3). 54: even ✓, digit sum 9 ✓ → divisible by 6.'
+        },
+        {
+          id:'AL-Y5-4',
+          code:'AC9M5A02',
+          descriptor:'AC9M5A02 – Find unknown values in numerical equations involving multiplication and division using the properties of numbers and operations',
+          question:'What value of ☆ makes both sides equal? 7 × ☆ = 4 × 21',
+          options:[
+            {label:'A',text:'12',correct:true,strategy:'Right side: 4 × 21 = 84. Then 7 × ☆ = 84, so ☆ = 84 ÷ 7 = 12.'},
+            {label:'B',text:'84',correct:false,strategy:'Found the right side value (84) but did not then divide by 7 to find ☆'},
+            {label:'C',text:'3',correct:false,strategy:'Divided 21 by 7 and ignored the 4 on the right side — incomplete calculation'},
+            {label:'D',text:'21',correct:false,strategy:'Read the 21 directly from the right side without solving the equation'},
+          ],
+          explanation:'Evaluate the right side first: 4 × 21 = 84. Then solve 7 × ☆ = 84: ☆ = 84 ÷ 7 = 12.'
+        },
+        {
+          id:'AL-Y5-5',
+          code:'AC9M5A01',
+          descriptor:'AC9M5A01 – Recognise and explain the connection between multiplication and division as inverse operations and use this to develop families of number facts',
+          question:'If 13 × 15 = 195, which of these can you immediately state is true WITHOUT calculating?',
+          options:[
+            {label:'A',text:'195 ÷ 13 = 15',correct:true,strategy:'Known multiplication fact → related division fact. This is the inverse, same fact family.'},
+            {label:'B',text:'195 ÷ 15 = 14',correct:false,strategy:'195 ÷ 15 = 13 (not 14) — this incorrectly changes the result'},
+            {label:'C',text:'13 × 15 = 185',correct:false,strategy:'Changes the product — this is a different (incorrect) equation, not derived from the fact'},
+            {label:'D',text:'195 × 13 = 15',correct:false,strategy:'Uses multiplication instead of division — the inverse operation is division, not multiplication'},
+          ],
+          explanation:'13 × 15 = 195 means 195 ÷ 13 = 15 and 195 ÷ 15 = 13 are automatically true — they are in the same fact family.'
+        },
+        {
+          id:'AL-Y5-6',
+          code:'AC9M5N10',
+          descriptor:'AC9M5N10 – Create and use algorithms involving a sequence of steps and decisions and digital tools to experiment with factors, multiples and divisibility; identify, interpret and describe emerging patterns',
+          question:'Which number is a common multiple of both 4 and 6?',
+          options:[
+            {label:'A',text:'24',correct:true,strategy:'24 ÷ 4 = 6 ✓ and 24 ÷ 6 = 4 ✓. 24 is the lowest common multiple of 4 and 6.'},
+            {label:'B',text:'10',correct:false,strategy:'10 is a multiple of neither 4 nor 6 (10÷4=2.5, 10÷6≈1.67)'},
+            {label:'C',text:'14',correct:false,strategy:'14 is not a multiple of 4 (14÷4=3.5) or 6 (14÷6≈2.33)'},
+            {label:'D',text:'18',correct:false,strategy:'18 is a multiple of 6 (18÷6=3) but NOT of 4 (18÷4=4.5) — only one condition met'},
+          ],
+          explanation:'A common multiple must be divisible by BOTH numbers. 24 ÷ 4 = 6 ✓ and 24 ÷ 6 = 4 ✓. This is the LCM of 4 and 6.'
+        },
+        {
+          id:'AL-Y5-7',
+          code:'AC9M5A02',
+          descriptor:'AC9M5A02 – Find unknown values in numerical equations involving multiplication and division using the properties of numbers and operations',
+          question:'A baker packs muffins into boxes. Each box holds the same number. He fills 9 boxes and has 4 muffins left. If he made 67 muffins, how many does each box hold?',
+          options:[
+            {label:'A',text:'7',correct:true,strategy:'67 − 4 (leftover) = 63 muffins packed. 63 ÷ 9 = 7 per box.'},
+            {label:'B',text:'8',correct:false,strategy:'8 × 9 = 72 ≠ 63; overcounts the packed muffins'},
+            {label:'C',text:'6',correct:false,strategy:'6 × 9 = 54 ≠ 63; undercounts the packed muffins'},
+            {label:'D',text:'7 remainder 4',correct:false,strategy:'The 4 is the remainder already given — it should not appear in the answer for "per box"'},
+          ],
+          explanation:'67 − 4 = 63 muffins actually packed into boxes. 63 ÷ 9 = 7 per box. This uses division to find an unknown factor.'
+        },
+      ],
+
+      Y6: [
+        {
+          id:'AL-Y6-1',
+          code:'AC9M6A02',
+          descriptor:'AC9M6A02 – Find unknown values in numerical equations involving brackets and combinations of arithmetic operations, using the properties of numbers and operations',
+          question:'What value of p makes this true? (p + 6) × 4 = 52',
+          options:[
+            {label:'A',text:'7',correct:true,strategy:'Work backwards: 52 ÷ 4 = 13; then p + 6 = 13, so p = 13 − 6 = 7'},
+            {label:'B',text:'19',correct:false,strategy:'Divided 52 by 4 to get 13 but then added 6 rather than subtracting it'},
+            {label:'C',text:'10',correct:false,strategy:'Divided 52 by 4 = 13 then subtracted 3 — error in the subtraction step (13 − 6 = 7 not 10)'},
+            {label:'D',text:'46',correct:false,strategy:'Subtracted 6 from 52 before dividing — ignored the brackets and order of operations'},
+          ],
+          explanation:'Use inverse operations in reverse order: ÷4 first: 52÷4=13. Then −6: 13−6=7. So p=7. Check: (7+6)×4=13×4=52 ✓'
+        },
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  measurement: {
+    name: 'Measurement',
+    icon: '📏',
+    color: '#8b3a1a',
+    desc: 'Metric units, perimeter, area, 12/24-hour time, angles',
+    questions: {
+
+      Y3: [
+        {
+          id:'ME-Y3-1',
+          code:'AC9M3M01',
+          descriptor:'AC9M3M01 – Measure and compare the areas of shapes using informal units; investigate the relationship between the length and width of rectangles and the number of units needed to cover a shape',
+          question:'A rectangle is 6 units long and 3 units wide. How many square units cover its area?',
+          options:[
+            {label:'A',text:'18 square units',correct:true,strategy:'Area = length × width = 6 × 3 = 18 square units'},
+            {label:'B',text:'9 square units',correct:false,strategy:'Added length + width instead of multiplying: 6 + 3 = 9'},
+            {label:'C',text:'18 units (perimeter)',correct:false,strategy:'Calculated perimeter: 6+3+6+3=18, but used wrong unit — area needs square units'},
+            {label:'D',text:'12 square units',correct:false,strategy:'Multiplied by 2 rather than finding length × width: 6 × 2 = 12'},
+          ],
+          explanation:'Area of a rectangle = length × width = 6 × 3 = 18 square units. Area counts the unit squares that fill the shape.'
+        },
+        {
+          id:'ME-Y3-2',
+          code:'AC9M3M03',
+          descriptor:'AC9M3M03 – Estimate, measure and compare durations of time using hours, minutes and seconds; represent time using digital and analog notation',
+          question:'A TV show starts at 6:45 PM and goes for 30 minutes. What time does it finish?',
+          options:[
+            {label:'A',text:'7:15 PM',correct:true,strategy:'6:45 + 30 min: 45 + 30 = 75 min = 1 hour 15 min past 6 = 7:15 PM'},
+            {label:'B',text:'7:45 PM',correct:false,strategy:'Added 1 hour instead of 30 minutes — wrong unit of time'},
+            {label:'C',text:'6:75 PM',correct:false,strategy:'Added 30 minutes to the minutes digit without converting 75 minutes to 1 h 15 min'},
+            {label:'D',text:'6:15 PM',correct:false,strategy:'Subtracted 30 minutes instead of adding — went backwards in time'},
+          ],
+          explanation:'6:45 PM + 30 min: 45 + 30 = 75 min = 60 min + 15 min = 1 hr 15 min. So 6:00 PM + 1 hr 15 min = 7:15 PM.'
+        },
+      ],
+
+      Y4: [
+        {
+          id:'ME-Y4-1',
+          code:'AC9M4M02',
+          descriptor:'AC9M4M02 – Estimate and measure lengths in metres, centimetres and millimetres; estimate and measure mass in kilograms and grams; estimate and measure capacity in litres and millilitres; and make connections between units',
+          question:'How many millimetres are in 4.5 centimetres?',
+          options:[
+            {label:'A',text:'45 mm',correct:true,strategy:'1 cm = 10 mm; 4.5 × 10 = 45 mm'},
+            {label:'B',text:'450 mm',correct:false,strategy:'Multiplied by 100 — confused the cm → mm conversion with the m → cm conversion'},
+            {label:'C',text:'4.5 mm',correct:false,strategy:'Did not apply the conversion — wrote the same number in different units'},
+            {label:'D',text:'0.45 mm',correct:false,strategy:'Divided instead of multiplied — reversed the direction of conversion'},
+          ],
+          explanation:'1 cm = 10 mm. To convert cm to mm, multiply by 10. 4.5 × 10 = 45 mm.'
+        },
+        {
+          id:'ME-Y4-2',
+          code:'AC9M4M03',
+          descriptor:'AC9M4M03 – Solve problems involving duration of events including situations where time crosses over the hour, day and AM/PM boundaries',
+          question:'A train departs at 9:50 AM and arrives at 11:20 AM. How long is the journey?',
+          options:[
+            {label:'A',text:'1 hour 30 minutes',correct:true,strategy:'9:50 to 10:00 = 10 min; 10:00 to 11:20 = 1 hr 20 min; total = 1 hr 30 min'},
+            {label:'B',text:'2 hours 30 minutes',correct:false,strategy:'Subtracted the hour digits only: 11 − 9 = 2, ignoring the minute adjustment needed'},
+            {label:'C',text:'1 hour 20 minutes',correct:false,strategy:'Calculated 11:20 − 10:00 = 1 hr 20 min — forgot to add the 10 minutes before 10:00'},
+            {label:'D',text:'1 hour 10 minutes',correct:false,strategy:'Only counted 9:50 to 11:00 (1 hr 10 min) and forgot the extra 20 minutes to 11:20'},
+          ],
+          explanation:'Bridge method: 9:50 → 10:00 (10 min) + 10:00 → 11:20 (1 hr 20 min) = 1 hr 30 min total.'
+        },
+        {
+          id:'ME-Y4-3',
+          code:'AC9M4M02',
+          descriptor:'AC9M4M02 – Estimate and measure mass in kilograms and grams; make connections between units',
+          question:'A bag of rice weighs 2.75 kg. How many grams is that?',
+          options:[
+            {label:'A',text:'2 750 g',correct:true,strategy:'1 kg = 1 000 g; 2.75 × 1 000 = 2 750 g'},
+            {label:'B',text:'275 g',correct:false,strategy:'Multiplied by 100 instead of 1 000 — confused the conversion factor'},
+            {label:'C',text:'27 500 g',correct:false,strategy:'Multiplied by 10 000 — over-converted by one power of 10'},
+            {label:'D',text:'2.75 g',correct:false,strategy:'Did not apply the conversion — just changed the unit label'},
+          ],
+          explanation:'1 kg = 1 000 g. Multiply by 1 000 to convert kg to g: 2.75 × 1 000 = 2 750 g.'
+        },
+      ],
+
+      Y5: [
+        {
+          id:'ME-Y5-1',
+          code:'AC9M5M01',
+          descriptor:'AC9M5M01 – Choose appropriate metric units when measuring the length, mass and capacity of objects; use smaller units or a combination of units to obtain a more accurate measure',
+          question:'A student needs to measure the mass of a feather. Which unit is most appropriate?',
+          options:[
+            {label:'A',text:'Grams (g)',correct:true,strategy:'A feather is very light — grams give a meaningful measurement (e.g. 0.01 g). Kilograms would give a near-zero decimal.'},
+            {label:'B',text:'Kilograms (kg)',correct:false,strategy:'A feather is far too light for kg — would be expressed as a very small decimal like 0.00001 kg'},
+            {label:'C',text:'Tonnes (t)',correct:false,strategy:'Tonnes are for very large masses (cars, trucks, shipping containers) — not appropriate for a feather'},
+            {label:'D',text:'Litres (L)',correct:false,strategy:'Litres measure capacity (liquid volume), not mass — wrong attribute being measured'},
+          ],
+          explanation:'AC9M5M01 requires choosing appropriate metric units. A feather has a tiny mass best expressed in grams, which gives a practical, readable number.'
+        },
+        {
+          id:'ME-Y5-2',
+          code:'AC9M5M02',
+          descriptor:'AC9M5M02 – Solve practical problems involving the perimeter and area of regular and irregular shapes using appropriate metric units',
+          question:'A rectangular garden bed is 8.5 m long and 3 m wide. What is its perimeter?',
+          options:[
+            {label:'A',text:'23 m',correct:true,strategy:'P = 2 × (l + w) = 2 × (8.5 + 3) = 2 × 11.5 = 23 m'},
+            {label:'B',text:'25.5 m²',correct:false,strategy:'Calculated area (8.5 × 3 = 25.5) and used wrong unit — area, not perimeter'},
+            {label:'C',text:'11.5 m',correct:false,strategy:'Added length + width only once (8.5 + 3 = 11.5) without doubling for opposite sides'},
+            {label:'D',text:'46 m',correct:false,strategy:'Doubled each side first then added: 8.5×2=17, 3×2=6 — but added them without the formula; 17+6=23, not 46'},
+          ],
+          explanation:'Perimeter of rectangle = 2 × (length + width) = 2 × (8.5 + 3) = 2 × 11.5 = 23 m. Always measure all four sides.'
+        },
+        {
+          id:'ME-Y5-3',
+          code:'AC9M5M02',
+          descriptor:'AC9M5M02 – Solve practical problems involving the perimeter and area of regular and irregular shapes using appropriate metric units',
+          question:'A square floor tile has a side length of 30 cm. What is the area of the tile?',
+          options:[
+            {label:'A',text:'900 cm²',correct:true,strategy:'Area = side × side = 30 × 30 = 900 cm²'},
+            {label:'B',text:'120 cm²',correct:false,strategy:'Calculated perimeter (4 × 30 = 120) using wrong formula and wrong unit'},
+            {label:'C',text:'60 cm²',correct:false,strategy:'Multiplied 30 × 2 — added two sides only instead of squaring the side length'},
+            {label:'D',text:'900 cm',correct:false,strategy:'Correct number but wrong unit — area is measured in square units (cm²), not linear units (cm)'},
+          ],
+          explanation:'Area of a square = side² = 30 × 30 = 900 cm². Area is always expressed in square units.'
+        },
+        {
+          id:'ME-Y5-4',
+          code:'AC9M5M03',
+          descriptor:'AC9M5M03 – Compare 12- and 24-hour time systems and solve practical problems involving the conversion between them',
+          question:'A flight departs at 14:35 and lands at 17:10. What is the duration of the flight?',
+          options:[
+            {label:'A',text:'2 hours 35 minutes',correct:true,strategy:'Bridge: 14:35 → 15:00 (25 min) + 15:00 → 17:00 (2 hr) + 17:00 → 17:10 (10 min) = 2 hr 35 min'},
+            {label:'B',text:'3 hours 35 minutes',correct:false,strategy:'Subtracted only the hours: 17 − 14 = 3, ignored the effect of the minutes on the answer'},
+            {label:'C',text:'2 hours 25 minutes',correct:false,strategy:'Arithmetic error: 10 − 35 is negative so needed to borrow; result should be 35 min not 25 min'},
+            {label:'D',text:'3 hours 25 minutes',correct:false,strategy:'Made errors in both the hours and minutes calculations'},
+          ],
+          explanation:'14:35 → 17:10. Bridge method: 14:35→15:00 = 25 min, 15:00→17:00 = 2 hr, 17:00→17:10 = 10 min. Total = 2 hr 35 min.'
+        },
+        {
+          id:'ME-Y5-5',
+          code:'AC9M5M04',
+          descriptor:'AC9M5M04 – Estimate, construct and measure angles in degrees, using appropriate tools including a protractor, and relate these measures to angle names',
+          question:'An angle measures 145°. What type of angle is it?',
+          options:[
+            {label:'A',text:'Obtuse angle',correct:true,strategy:'Obtuse angles are between 90° and 180°. 145° is greater than 90° and less than 180°.'},
+            {label:'B',text:'Acute angle',correct:false,strategy:'Acute angles are less than 90°. 145° is greater than 90°.'},
+            {label:'C',text:'Reflex angle',correct:false,strategy:'Reflex angles are greater than 180°. 145° is less than 180°.'},
+            {label:'D',text:'Right angle',correct:false,strategy:'A right angle is exactly 90°. 145° is not 90°.'},
+          ],
+          explanation:'Angle names by size: Acute = less than 90°; Right = exactly 90°; Obtuse = between 90° and 180°; Reflex = greater than 180°. 145° is obtuse.'
+        },
+        {
+          id:'ME-Y5-6',
+          code:'AC9M5M02',
+          descriptor:'AC9M5M02 – Solve practical problems involving the perimeter and area of regular and irregular shapes using appropriate metric units',
+          question:'Two rectangles both have a perimeter of 28 cm. Rectangle A is 8 cm × 6 cm. Rectangle B is 10 cm × 4 cm. Which has the greater area?',
+          options:[
+            {label:'A',text:'Rectangle A — area = 48 cm²',correct:true,strategy:'A: 8×6=48 cm²; B: 10×4=40 cm². Same perimeter, different areas — A is larger.'},
+            {label:'B',text:'Rectangle B — area = 40 cm²',correct:false,strategy:'Correct area calculation but chose the smaller value'},
+            {label:'C',text:'Both are equal because they have the same perimeter',correct:false,strategy:'Common misconception — equal perimeter does NOT mean equal area; shape matters'},
+            {label:'D',text:'Rectangle A — area = 28 cm²',correct:false,strategy:'Used the perimeter value as the area — confused the two measures'},
+          ],
+          explanation:'Area A = 8 × 6 = 48 cm². Area B = 10 × 4 = 40 cm². Rectangle A has greater area despite both having the same perimeter (28 cm). This is a key AC9M5M02 insight.'
+        },
+        {
+          id:'ME-Y5-7',
+          code:'AC9M5M03',
+          descriptor:'AC9M5M03 – Compare 12- and 24-hour time systems and solve practical problems involving the conversion between them',
+          question:'What is 9:45 PM expressed in 24-hour time?',
+          options:[
+            {label:'A',text:'21:45',correct:true,strategy:'PM hours after 12 noon: add 12 to the hour. 9 + 12 = 21. Minutes stay the same: 21:45.'},
+            {label:'B',text:'9:45',correct:false,strategy:'Left the time unchanged — 9:45 in 24-hour time is 09:45 AM, not PM'},
+            {label:'C',text:'20:45',correct:false,strategy:'Added 11 instead of 12 — 8 + 12 = 20 is for 8:00 PM, not 9:00 PM'},
+            {label:'D',text:'19:45',correct:false,strategy:'Added 10 instead of 12 — 7 + 12 = 19 is for 7:00 PM, not 9:00 PM'},
+          ],
+          explanation:'To convert PM time to 24-hour: add 12 to the hour (except 12 PM stays as 12). 9 PM: 9 + 12 = 21 → 21:45.'
+        },
+      ],
+
+      Y6: [
+        {
+          id:'ME-Y6-1',
+          code:'AC9M6M01',
+          descriptor:'AC9M6M01 – Convert between common metric units of length, mass and capacity; choose and use decimal representations of metric measurements relevant to the context of a problem',
+          question:'A recipe needs 750 mL of milk. A carton holds 1.5 L. How much milk in mL is left after using the recipe?',
+          options:[
+            {label:'A',text:'750 mL',correct:true,strategy:'Convert 1.5 L to mL: 1.5 × 1000 = 1500 mL. 1500 − 750 = 750 mL remaining.'},
+            {label:'B',text:'0.75 mL',correct:false,strategy:'Subtracted without converting: 1.5 − 0.75 = 0.75 (in litres, not mL)'},
+            {label:'C',text:'250 mL',correct:false,strategy:'Converted 1.5 L to 150 mL (wrong conversion) then subtracted'},
+            {label:'D',text:'1 250 mL',correct:false,strategy:'Added rather than subtracted: 1500 + 750 = 2250... or other arithmetic error'},
+          ],
+          explanation:'1.5 L = 1 500 mL. Then 1 500 − 750 = 750 mL remaining. Always convert to the same unit before calculating.'
+        },
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  space: {
+    name: 'Space',
+    icon: '📐',
+    color: '#4a1a6b',
+    desc: 'Nets and 3D objects, coordinates, transformations, symmetry',
+    questions: {
+
+      Y3: [
+        {
+          id:'SP-Y3-1',
+          code:'AC9M3SP01',
+          descriptor:'AC9M3SP01 – Make, compare and classify shapes and objects using identifying properties including the number of sides, angles and symmetry',
+          question:'Which shape has 4 equal sides and 4 right angles?',
+          options:[
+            {label:'A',text:'Square',correct:true,strategy:'A square has exactly 4 equal sides AND 4 right angles (90°)'},
+            {label:'B',text:'Rectangle',correct:false,strategy:'A rectangle has 4 right angles but its opposite sides are equal, not all 4 sides'},
+            {label:'C',text:'Rhombus',correct:false,strategy:'A rhombus has 4 equal sides but its angles are not necessarily 90°'},
+            {label:'D',text:'Trapezium',correct:false,strategy:'A trapezium has only one pair of parallel sides — neither all sides equal nor all right angles'},
+          ],
+          explanation:'A square is the only quadrilateral with BOTH 4 equal sides AND 4 right angles. A rectangle has right angles but unequal adjacent sides. A rhombus has equal sides but no right angles (unless it is also a square).'
+        },
+        {
+          id:'SP-Y3-2',
+          code:'AC9M3SP02',
+          descriptor:'AC9M3SP02 – Identify and describe the position and location of objects, using the language of distance, direction and movement',
+          question:'Starting at position A, you move 3 steps right then 2 steps forward. Where do you end up relative to A?',
+          options:[
+            {label:'A',text:'3 right and 2 forward from A',correct:true,strategy:'Each move is applied in order — the final position is the sum of both movements from the starting point'},
+            {label:'B',text:'2 right and 3 forward from A',correct:false,strategy:'Reversed the directions — swapped which instruction was right and which was forward'},
+            {label:'C',text:'5 steps diagonally from A',correct:false,strategy:'Combined the two distances as a single diagonal rather than describing two distinct directional moves'},
+            {label:'D',text:'Back at position A',correct:false,strategy:'No movement was reversed — both moves were in different directions and are cumulative'},
+          ],
+          explanation:'Position is described using direction and distance. Moving 3 right then 2 forward means the final position is 3 right AND 2 forward from the starting point A.'
+        },
+      ],
+
+      Y4: [
+        {
+          id:'SP-Y4-1',
+          code:'AC9M4SP01',
+          descriptor:'AC9M4SP01 – Recognise, name and describe the features of 2D shapes including different types of triangles and quadrilaterals',
+          question:'A triangle has NO equal sides and NO equal angles. What type of triangle is it?',
+          options:[
+            {label:'A',text:'Scalene',correct:true,strategy:'Scalene triangle: all 3 sides are different lengths and all 3 angles are different sizes'},
+            {label:'B',text:'Isosceles',correct:false,strategy:'Isosceles triangle has exactly 2 equal sides and 2 equal base angles'},
+            {label:'C',text:'Equilateral',correct:false,strategy:'Equilateral triangle has 3 equal sides and three 60° angles'},
+            {label:'D',text:'Right-angled',correct:false,strategy:'Right-angled describes a property of one angle (90°) — it does not describe side equality and can be scalene, isosceles or equilateral'},
+          ],
+          explanation:'Triangle types by sides: Scalene = all different; Isosceles = two equal; Equilateral = all equal. A triangle with no equal sides is scalene.'
+        },
+        {
+          id:'SP-Y4-2',
+          code:'AC9M4SP02',
+          descriptor:'AC9M4SP02 – Create and interpret grid reference maps to locate and describe positions and pathways',
+          question:'On a grid map, the library is at (3, 5). The school is 4 units right and 2 units down from the library. What are the school\'s coordinates?',
+          options:[
+            {label:'A',text:'(7, 3)',correct:true,strategy:'Right increases x: 3+4=7. Down decreases y: 5−2=3. School is at (7, 3).'},
+            {label:'B',text:'(7, 7)',correct:false,strategy:'Moved right correctly but moved UP instead of down (5+2=7 rather than 5−2=3)'},
+            {label:'C',text:'(1, 3)',correct:false,strategy:'Moved LEFT instead of right (3−4 would give negative; went wrong direction)'},
+            {label:'D',text:'(3, 3)',correct:false,strategy:'Only applied the vertical change (5−2=3) and left the horizontal coordinate unchanged'},
+          ],
+          explanation:'Moving right: add to x-coordinate (3+4=7). Moving down: subtract from y-coordinate (5−2=3). School is at (7, 3).'
+        },
+        {
+          id:'SP-Y4-3',
+          code:'AC9M4SP03',
+          descriptor:'AC9M4SP03 – Identify symmetry in the environment and create symmetric shapes and patterns; reflect and describe symmetry',
+          question:'How many lines of symmetry does a rectangle (non-square) have?',
+          options:[
+            {label:'A',text:'2',correct:true,strategy:'A rectangle has 2 lines of symmetry — one through the middle of each pair of opposite sides (horizontal and vertical)'},
+            {label:'B',text:'4',correct:false,strategy:'4 is correct for a SQUARE; a rectangle\'s diagonals are NOT lines of symmetry'},
+            {label:'C',text:'0',correct:false,strategy:'A rectangle does have symmetry — this confuses it with a parallelogram (which has 0 lines of symmetry)'},
+            {label:'D',text:'1',correct:false,strategy:'One line of symmetry would be for shapes like an isosceles triangle — a rectangle has 2'},
+          ],
+          explanation:'A rectangle (non-square) has 2 lines of symmetry: one joining midpoints of the long sides, one joining midpoints of the short sides. Diagonals are NOT lines of symmetry (they don\'t produce mirror images).'
+        },
+      ],
+
+      Y5: [
+        {
+          id:'SP-Y5-1',
+          code:'AC9M5SP01',
+          descriptor:'AC9M5SP01 – Connect objects to their nets and build objects from their nets using spatial and geometric reasoning',
+          question:'Which net would fold to make a triangular prism?',
+          options:[
+            {label:'A',text:'2 triangles and 3 rectangles',correct:true,strategy:'A triangular prism has 2 triangular faces (the ends) and 3 rectangular faces (the sides) — 5 faces total'},
+            {label:'B',text:'1 square and 4 triangles',correct:false,strategy:'This is the net of a square pyramid, not a triangular prism'},
+            {label:'C',text:'6 rectangles',correct:false,strategy:'6 rectangles (or squares) form a rectangular prism (cuboid) — not a triangular prism'},
+            {label:'D',text:'2 triangles and 2 rectangles',correct:false,strategy:'A triangular prism needs 3 rectangular faces (one for each lateral edge of the triangles), not 2'},
+          ],
+          explanation:'A triangular prism has 5 faces: 2 triangular bases + 3 rectangular lateral faces. Its net must include exactly 2 triangles and 3 rectangles.'
+        },
+        {
+          id:'SP-Y5-2',
+          code:'AC9M5SP02',
+          descriptor:'AC9M5SP02 – Construct a grid coordinate system that uses coordinates to locate positions within a space; use coordinates and directional language to describe position and movement',
+          question:'On a Cartesian plane, a point is located at (−2, 4). In which quadrant is this point?',
+          options:[
+            {label:'A',text:'Quadrant II (top-left)',correct:true,strategy:'Negative x and positive y places the point left of the y-axis and above the x-axis — Quadrant II'},
+            {label:'B',text:'Quadrant I (top-right)',correct:false,strategy:'Quadrant I requires both x and y to be positive — the x here is negative'},
+            {label:'C',text:'Quadrant III (bottom-left)',correct:false,strategy:'Quadrant III requires both x and y to be negative — the y here is positive (+4)'},
+            {label:'D',text:'Quadrant IV (bottom-right)',correct:false,strategy:'Quadrant IV has positive x and negative y — here x is negative and y is positive'},
+          ],
+          explanation:'Quadrant II: x is negative (left of y-axis), y is positive (above x-axis). Point (−2, 4) → negative x, positive y → Quadrant II.'
+        },
+        {
+          id:'SP-Y5-3',
+          code:'AC9M5SP03',
+          descriptor:'AC9M5SP03 – Describe and perform translations, reflections and rotations of shapes, using dynamic geometric software where appropriate; recognise what changes and what remains the same, and identify any symmetries',
+          question:'A shape is translated 5 units right and 3 units down. A vertex was at (2, 6). Where is the corresponding vertex after the translation?',
+          options:[
+            {label:'A',text:'(7, 3)',correct:true,strategy:'Translation right: x + 5 = 2+5=7. Translation down: y − 3 = 6−3=3. New position: (7, 3).'},
+            {label:'B',text:'(2, 6)',correct:false,strategy:'The point was not moved — translation must be applied to all vertices'},
+            {label:'C',text:'(7, 9)',correct:false,strategy:'Moved right correctly but went UP instead of down (6+3=9 instead of 6−3=3)'},
+            {label:'D',text:'(−3, 3)',correct:false,strategy:'Moved LEFT instead of right (2−5=−3) and down correctly — wrong direction for horizontal movement'},
+          ],
+          explanation:'Translation 5 right, 3 down: add 5 to x, subtract 3 from y. (2, 6) → (2+5, 6−3) = (7, 3). A translation moves every point the same distance and direction.'
+        },
+        {
+          id:'SP-Y5-4',
+          code:'AC9M5SP03',
+          descriptor:'AC9M5SP03 – Describe and perform translations, reflections and rotations of shapes; recognise what changes and what remains the same, and identify any symmetries',
+          question:'A triangle is reflected across the y-axis. What changes and what stays the same?',
+          options:[
+            {label:'A',text:'The x-coordinates change sign; the y-coordinates and shape stay the same',correct:true,strategy:'Reflection across the y-axis: x → −x, y stays unchanged. Size and shape are preserved.'},
+            {label:'B',text:'The y-coordinates change sign; the x-coordinates stay the same',correct:false,strategy:'This describes reflection across the x-axis (not the y-axis)'},
+            {label:'C',text:'Both x and y coordinates change sign',correct:false,strategy:'Both changing sign would be a rotation of 180° about the origin — not a reflection across the y-axis'},
+            {label:'D',text:'The shape changes size but the angles stay the same',correct:false,strategy:'Reflections preserve both size and shape — they are rigid transformations (isometries)'},
+          ],
+          explanation:'Reflecting across the y-axis: (x, y) → (−x, y). The x-coordinate changes sign; y stays the same. The triangle\'s size and shape are preserved (congruence is maintained).'
+        },
+        {
+          id:'SP-Y5-5',
+          code:'AC9M5SP01',
+          descriptor:'AC9M5SP01 – Connect objects to their nets and build objects from their nets using spatial and geometric reasoning',
+          question:'How many faces does a square pyramid have?',
+          options:[
+            {label:'A',text:'5 faces',correct:true,strategy:'1 square base + 4 triangular faces = 5 faces total'},
+            {label:'B',text:'4 faces',correct:false,strategy:'Counted only the triangular faces and forgot the square base'},
+            {label:'C',text:'6 faces',correct:false,strategy:'6 faces is correct for a rectangular prism (cuboid) — confused the two 3D objects'},
+            {label:'D',text:'8 faces',correct:false,strategy:'8 faces would be for an octahedron — far more than a square pyramid'},
+          ],
+          explanation:'A square pyramid has: 1 square base + 4 triangular sides = 5 faces total. It also has 5 vertices and 8 edges (verify: F + V − E = 2; 5+5−8=2 ✓).'
+        },
+        {
+          id:'SP-Y5-6',
+          code:'AC9M5SP02',
+          descriptor:'AC9M5SP02 – Construct a grid coordinate system that uses coordinates to locate positions within a space; use coordinates and directional language to describe position and movement',
+          question:'A point at (4, −3) is moved 3 units left and 5 units up. What are its new coordinates?',
+          options:[
+            {label:'A',text:'(1, 2)',correct:true,strategy:'Left decreases x: 4−3=1. Up increases y: −3+5=2. New point: (1, 2).'},
+            {label:'B',text:'(7, 2)',correct:false,strategy:'Moved RIGHT instead of left (4+3=7) — wrong horizontal direction'},
+            {label:'C',text:'(1, −8)',correct:false,strategy:'Moved left correctly but went DOWN instead of up (−3−5=−8)'},
+            {label:'D',text:'(7, −8)',correct:false,strategy:'Both directions are wrong — moved right and down instead of left and up'},
+          ],
+          explanation:'Moving left: subtract from x (4−3=1). Moving up: add to y (−3+5=2). New position: (1, 2).'
+        },
+        {
+          id:'SP-Y5-7',
+          code:'AC9M5SP03',
+          descriptor:'AC9M5SP03 – Describe and perform translations, reflections and rotations; recognise what changes and what remains the same',
+          question:'A shape is rotated 90° clockwise. What is preserved (stays the same)?',
+          options:[
+            {label:'A',text:'The size and shape of the figure',correct:true,strategy:'Rotations are rigid transformations — they preserve size (lengths) and shape (angles). Only orientation and position change.'},
+            {label:'B',text:'The position of every point',correct:false,strategy:'Rotation moves every point (except the centre of rotation) — position is not preserved'},
+            {label:'C',text:'The direction each side faces',correct:false,strategy:'Rotation changes the orientation/direction — sides that faced up now face right (for 90° clockwise)'},
+            {label:'D',text:'The coordinates of each vertex',correct:false,strategy:'Coordinates change after rotation — only the original and final coordinates share the same distance from the centre'},
+          ],
+          explanation:'Rotations (and all rigid transformations) preserve size and shape — lengths and angles are unchanged. Position and orientation change. This is called congruence.'
+        },
+      ],
+
+      Y6: [
+        {
+          id:'SP-Y6-1',
+          code:'AC9M6SP02',
+          descriptor:'AC9M6SP02 – Locate points in the 4 quadrants of a Cartesian plane; describe changes to the coordinates when a point is moved to a different position in the plane',
+          question:'A point at (3, −2) is reflected across the x-axis. What are its new coordinates?',
+          options:[
+            {label:'A',text:'(3, 2)',correct:true,strategy:'Reflecting across x-axis: x stays the same, y changes sign. (3, −2) → (3, 2).'},
+            {label:'B',text:'(−3, −2)',correct:false,strategy:'Reflecting across the y-axis would change x sign — that is the wrong axis'},
+            {label:'C',text:'(−3, 2)',correct:false,strategy:'This reflects across both axes (same as 180° rotation) — only one axis is being used'},
+            {label:'D',text:'(2, −3)',correct:false,strategy:'Swapped the x and y values — this is not a reflection across either axis'},
+          ],
+          explanation:'Reflecting across the x-axis: (x, y) → (x, −y). The y-coordinate changes sign; x stays the same. (3, −2) → (3, 2).'
+        },
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  statistics: {
+    name: 'Statistics',
+    icon: '📊',
+    color: '#1a5a5a',
+    desc: 'Collect, represent and interpret data; mode; line graphs; statistical investigations',
+    questions: {
+
+      Y3: [
+        {
+          id:'ST-Y3-1',
+          code:'AC9M3ST01',
+          descriptor:'AC9M3ST01 – Acquire data for categorical variables through observation, survey or experiment; record and represent data using tally marks, tables, picture graphs and column graphs',
+          question:'A tally shows: ⟨IIII⟩ I for "dogs", ⟨IIII⟩ for "cats", III for "birds". How many animals were recorded in total?',
+          options:[
+            {label:'A',text:'18',correct:true,strategy:'Dogs: 6 (IIII I), Cats: 5 (IIII), Birds: 3 (III); Total: 6+5+3=14... recount: IIII I = 6, IIII = 5, III = 3 → 14'},
+            {label:'B',text:'14',correct:true,strategy:'Dogs = 6, Cats = 5, Birds = 3. Total = 6 + 5 + 3 = 14 ✓'},
+            {label:'C',text:'11',correct:false,strategy:'Misread the tally — perhaps counted IIII as 4 instead of 5 for the cats group'},
+            {label:'D',text:'16',correct:false,strategy:'Likely over-counted one of the tally groups by one or two'},
+          ],
+          explanation:'Read tally marks: IIII I = 6, IIII = 5, III = 3. Total = 6 + 5 + 3 = 14. Tally groups are read in sets of 5 (four vertical + one diagonal).'
+        },
+        {
+          id:'ST-Y3-2',
+          code:'AC9M3ST02',
+          descriptor:'AC9M3ST02 – Interpret data represented in tally marks, tables, picture graphs and column graphs, and make comparative statements to describe data',
+          question:'A column graph shows: Monday=8 students, Tuesday=5, Wednesday=12, Thursday=6. How many MORE students came on Wednesday than Monday?',
+          options:[
+            {label:'A',text:'4',correct:true,strategy:'Wednesday (12) − Monday (8) = 4 more students'},
+            {label:'B',text:'20',correct:false,strategy:'Added the two values instead of finding the difference: 12 + 8 = 20'},
+            {label:'C',text:'7',correct:false,strategy:'Compared Wednesday (12) to Tuesday (5): 12−5=7 — answered a different comparison'},
+            {label:'D',text:'2',correct:false,strategy:'Arithmetic error in the subtraction: 12 − 8 = 4, not 2'},
+          ],
+          explanation:'Comparative statements use subtraction: Wednesday (12) − Monday (8) = 4 more students came on Wednesday.'
+        },
+      ],
+
+      Y4: [
+        {
+          id:'ST-Y4-1',
+          code:'AC9M4ST01',
+          descriptor:'AC9M4ST01 – Acquire data for categorical and discrete numerical variables to address a question of interest using sources including surveys, and represent the data in various ways',
+          question:'A class votes for their favourite fruit. Results: Apple=8, Banana=12, Mango=5, Grape=10. Which display would best show how many students chose each fruit?',
+          options:[
+            {label:'A',text:'Column (bar) graph',correct:true,strategy:'Column graphs are ideal for comparing counts of different categories — one bar per category makes comparison easy'},
+            {label:'B',text:'Line graph',correct:false,strategy:'Line graphs show change over time — fruit preference is not a time-based variable'},
+            {label:'C',text:'Dot plot for continuous data',correct:false,strategy:'Dot plots are better suited for numerical data spread across a range — not categorical choices'},
+            {label:'D',text:'Tally marks only',correct:false,strategy:'Tally marks are for recording data, not for an effective display that others can interpret easily'},
+          ],
+          explanation:'Column graphs are best for categorical data (fruit types) where you want to compare the count in each category. Each category gets one bar whose height represents the count.'
+        },
+        {
+          id:'ST-Y4-2',
+          code:'AC9M4ST02',
+          descriptor:'AC9M4ST02 – Interpret data presented in data displays including many-to-one picture graphs and column graphs, and make comparative and summative statements',
+          question:'A picture graph uses ★ = 4 students. The row for "swimming" shows 3½ stars. How many students chose swimming?',
+          options:[
+            {label:'A',text:'14',correct:true,strategy:'3 full stars = 3 × 4 = 12; ½ star = 2; total = 12 + 2 = 14'},
+            {label:'B',text:'3.5',correct:false,strategy:'Read the number of stars rather than multiplying by the scale value (4)'},
+            {label:'C',text:'12',correct:false,strategy:'Counted only the 3 full stars (3 × 4 = 12) and ignored the half star'},
+            {label:'D',text:'16',correct:false,strategy:'Rounded the 3½ stars up to 4 full stars: 4 × 4 = 16 — should not round up'},
+          ],
+          explanation:'Many-to-one: each ★ = 4 students. 3 stars = 12 students; ½ star = 2 students; total = 14 students.'
+        },
+      ],
+
+      Y5: [
+        {
+          id:'ST-Y5-1',
+          code:'AC9M5ST01',
+          descriptor:'AC9M5ST01 – Acquire, validate and represent data for nominal and ordinal categorical and discrete numerical variables to address a question of interest or purpose using software including spreadsheets; discuss and report on data distributions in terms of highest frequency (mode) and shape, in the context of the data',
+          question:'Student scores: 72, 85, 91, 68, 85, 74, 85, 90. What is the MODE of this data set?',
+          options:[
+            {label:'A',text:'85',correct:true,strategy:'Mode = highest frequency value. 85 appears 3 times — more than any other value.'},
+            {label:'B',text:'81.25',correct:false,strategy:'Calculated the mean (sum ÷ count = 650 ÷ 8 ≈ 81.25) — not the mode'},
+            {label:'C',text:'87.5',correct:false,strategy:'Calculated the median of this ordered set — not the mode'},
+            {label:'D',text:'91',correct:false,strategy:'Found the maximum value — not the mode'},
+          ],
+          explanation:'Mode = most frequently occurring value. In {68, 72, 74, 85, 85, 85, 90, 91}, 85 appears 3 times — more than any other. Mode = 85. AC9M5ST01 emphasises describing distributions using mode.'
+        },
+        {
+          id:'ST-Y5-2',
+          code:'AC9M5ST01',
+          descriptor:'AC9M5ST01 – Acquire, validate and represent data and discuss and report on data distributions in terms of highest frequency (mode) and shape, in the context of the data',
+          question:'A survey collected this data on number of siblings: 0, 1, 2, 1, 3, 1, 2, 0, 1, 2. What is the mode, and what does it tell us in context?',
+          options:[
+            {label:'A',text:'Mode = 1; most students in this survey have 1 sibling',correct:true,strategy:'1 appears 4 times — the highest frequency. In context, having 1 sibling is the most common result.'},
+            {label:'B',text:'Mode = 2; most students have 2 siblings',correct:false,strategy:'2 appears 3 times, which is less than 1 (4 times) — 1 is the mode, not 2'},
+            {label:'C',text:'Mode = 1.3; that is the average number of siblings',correct:false,strategy:'1.3 would be the mean — calculated by adding all values and dividing. Mode is the most frequent value.'},
+            {label:'D',text:'Mode = 0; most students have no siblings',correct:false,strategy:'0 appears only 2 times — far less frequent than 1 (4 times)'},
+          ],
+          explanation:'Mode = 1 (appears 4 times: positions 2, 4, 6, 10). In context: having 1 sibling is the most common response in this data set. AC9M5ST01 requires interpreting the mode in the context of the data.'
+        },
+        {
+          id:'ST-Y5-3',
+          code:'AC9M5ST02',
+          descriptor:'AC9M5ST02 – Interpret line graphs representing change over time; discuss the relationships that are represented and conclusions that can be made',
+          question:'A line graph shows a plant\'s height over 6 weeks: Week 1=5 cm, Week 2=8 cm, Week 3=11 cm, Week 4=11 cm, Week 5=14 cm, Week 6=18 cm. What conclusion is most accurate?',
+          options:[
+            {label:'A',text:'The plant grew in most weeks, with no growth in one week',correct:true,strategy:'Growth occurred in weeks 1–2, 2–3, 4–5, 5–6 but NOT in week 3–4 (stayed at 11 cm) — a flat section on the line graph'},
+            {label:'B',text:'The plant grew by exactly 3 cm each week',correct:false,strategy:'Growth was not constant: +3, +3, +0, +3, +4 — the final week had +4 cm, not +3'},
+            {label:'C',text:'The plant\'s height decreased in week 4',correct:false,strategy:'Week 4 shows 11 cm (same as week 3) — the plant stopped growing, not decreased'},
+            {label:'D',text:'The plant grew fastest in weeks 1 and 2',correct:false,strategy:'Weeks 5–6 showed 4 cm growth — more than any other period; weeks 1–3 showed 3 cm per week'},
+          ],
+          explanation:'A flat section (Week 3→4: 11→11 cm) means zero growth in that period. All other periods show growth (+3 or +4 cm). AC9M5ST02 focuses on interpreting line graphs showing change over time.'
+        },
+        {
+          id:'ST-Y5-4',
+          code:'AC9M5ST03',
+          descriptor:'AC9M5ST03 – Plan and conduct statistical investigations by posing questions or identifying a problem and collecting relevant data; choose appropriate displays and interpret the data; communicate findings within the context of the investigation',
+          question:'A student wants to investigate: "Do Year 5 students prefer reading, sport or art?" What is the best first step in a statistical investigation?',
+          options:[
+            {label:'A',text:'Pose a clear question and decide how to collect data from Year 5 students',correct:true,strategy:'AC9M5ST03: a statistical investigation starts by posing a question and planning data collection — the investigation question guides all subsequent steps'},
+            {label:'B',text:'Draw a graph before collecting any data',correct:false,strategy:'You cannot create a meaningful data display without first collecting data — graphing comes after collection'},
+            {label:'C',text:'Write a conclusion based on what you already think will happen',correct:false,strategy:'Writing conclusions before collecting data introduces bias — the investigation should be guided by the data, not preconceived ideas'},
+            {label:'D',text:'Calculate the mode straightaway',correct:false,strategy:'You cannot calculate statistics without first having collected data — calculation is a later step in the investigation cycle'},
+          ],
+          explanation:'The statistical investigation cycle: Pose question → Collect data → Represent data → Interpret/analyse → Communicate findings. AC9M5ST03 expects students to understand and apply this process.'
+        },
+        {
+          id:'ST-Y5-5',
+          code:'AC9M5ST02',
+          descriptor:'AC9M5ST02 – Interpret line graphs representing change over time; discuss the relationships that are represented and conclusions that can be made',
+          question:'Two line graphs show the temperature in City A and City B over a week. At Wednesday, City A = 32°C and City B = 20°C. What is the best comparative statement?',
+          options:[
+            {label:'A',text:'City A was 12°C warmer than City B on Wednesday',correct:true,strategy:'32 − 20 = 12°C difference. A comparative statement quantifies the difference between the two data sets at that time point.'},
+            {label:'B',text:'City B is always colder than City A',correct:false,strategy:'We only have data for Wednesday — we cannot make a conclusion about "always" from a single data point'},
+            {label:'C',text:'Both cities are hot',correct:false,strategy:'This is a vague qualitative statement without reference to specific values — not appropriate for a statistical interpretation'},
+            {label:'D',text:'City A will be warmer next week too',correct:false,strategy:'Predicting future data from a graph is not a valid interpretation without a clear trend — this overgeneralises'},
+          ],
+          explanation:'A good comparative statement is specific and quantified: "City A was 12°C warmer than City B on Wednesday." AC9M5ST02 asks students to make comparisons and discuss relationships.'
+        },
+        {
+          id:'ST-Y5-6',
+          code:'AC9M5ST01',
+          descriptor:'AC9M5ST01 – Acquire, validate and represent data; discuss data distributions in terms of highest frequency (mode) and shape',
+          question:'A data set has these values: 3, 7, 7, 8, 9, 9, 9, 10. How would you describe the shape of this distribution?',
+          options:[
+            {label:'A',text:'The data clusters towards higher values, with 9 being the most common',correct:true,strategy:'Mode = 9 (appears 3 times); values increase towards the right; distribution leans toward higher values'},
+            {label:'B',text:'The data is evenly spread with no cluster',correct:false,strategy:'9 appears 3 times compared to 1 time for most others — there is a clear cluster at 9'},
+            {label:'C',text:'The data clusters towards lower values',correct:false,strategy:'Lower values (3, 7) appear less often than higher values (9, 10) — opposite of clustering low'},
+            {label:'D',text:'The data has no mode',correct:false,strategy:'9 appears 3 times — it is clearly the mode of this data set'},
+          ],
+          explanation:'The distribution clusters at 9 (the mode, appearing 3 times). Values increase from 3 upward, with the most common value at 9. This shows a cluster toward the higher end of the data range.'
+        },
+        {
+          id:'ST-Y5-7',
+          code:'AC9M5ST03',
+          descriptor:'AC9M5ST03 – Plan and conduct statistical investigations; choose appropriate displays and interpret the data; communicate findings within the context of the investigation',
+          question:'After collecting data on hours of sleep per night for 20 students, which display would best show the spread of values and identify the most common amount?',
+          options:[
+            {label:'A',text:'Dot plot',correct:true,strategy:'A dot plot shows every data point on a number line, making it easy to see spread, clusters, and the mode (tallest column of dots) for discrete numerical data'},
+            {label:'B',text:'Pie chart',correct:false,strategy:'Pie charts show proportions of a whole — not ideal for showing the spread of numerical data across a range'},
+            {label:'C',text:'Picture graph with one symbol = 5 students',correct:false,strategy:'A many-to-one picture graph loses detail about individual values — hard to see exact spread or identify the mode accurately'},
+            {label:'D',text:'A table of random order data',correct:false,strategy:'An unordered table makes it very difficult to see patterns, clusters or the mode — data needs to be organised or displayed visually'},
+          ],
+          explanation:'A dot plot is ideal for small discrete numerical data sets: each value is shown individually on a number line, making spread, clusters, gaps and the mode immediately visible. AC9M5ST03 asks students to choose appropriate displays.'
+        },
+      ],
+
+      Y6: [
+        {
+          id:'ST-Y6-1',
+          code:'AC9M6ST01',
+          descriptor:'AC9M6ST01 – Interpret and compare data sets for ordinal and nominal categorical, discrete and continuous numerical variables using comparative data displays including side-by-side column graphs and back-to-back stem-and-leaf plots',
+          question:'A back-to-back stem-and-leaf plot shows Yr 5 test scores (left) and Yr 6 scores (right). Yr 5 shows stem 7 | leaves 2, 5, 8. What are the three Yr 5 data values?',
+          options:[
+            {label:'A',text:'72, 75, 78',correct:true,strategy:'Stem 7 = the tens digit (70). Leaves 2, 5, 8 = ones digits. So: 72, 75, 78.'},
+            {label:'B',text:'7.2, 7.5, 7.8',correct:false,strategy:'Stem-and-leaf plots represent whole numbers — the stem is the tens digit, not a decimal'},
+            {label:'C',text:'2, 5, 8',correct:false,strategy:'Read only the leaves and ignored the stem — must combine stem and leaf to find each value'},
+            {label:'D',text:'720, 750, 780',correct:false,strategy:'Treated the stem as hundreds rather than tens — over-scaled by a factor of 10'},
+          ],
+          explanation:'In a stem-and-leaf plot, the stem gives the tens digit and the leaf gives the ones digit. Stem 7, leaves 2, 5, 8 → values are 72, 75, 78.'
+        },
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  probability: {
+    name: 'Probability',
+    icon: '🎲',
+    color: '#6b3a00',
+    desc: 'Equally and non-equally likely outcomes; repeated experiments; likelihoods using fractions',
+    questions: {
+
+      Y3: [
+        {
+          id:'PR-Y3-1',
+          code:'AC9M3P01',
+          descriptor:'AC9M3P01 – Identify practical activities and everyday events that involve chance; describe outcomes as likely, unlikely or impossible, and identify some events as equally likely',
+          question:'Which of these events is IMPOSSIBLE?',
+          options:[
+            {label:'A',text:'Rolling a number greater than 6 on a standard 6-sided dice',correct:true,strategy:'A standard dice only has faces 1–6. There is no face with a value greater than 6 — this event is impossible.'},
+            {label:'B',text:'Rolling a number greater than 3 on a standard dice',correct:false,strategy:'Rolling 4, 5 or 6 are all possible — this event is likely (3 out of 6 chances)'},
+            {label:'C',text:'Getting tails when you flip a coin',correct:false,strategy:'Getting tails is equally likely as getting heads — it is a possible event'},
+            {label:'D',text:'Drawing a red card from a standard deck',correct:false,strategy:'Half of a standard deck (26 cards) are red — this event is possible and equally likely'},
+          ],
+          explanation:'Impossible events have zero chance of occurring. Rolling higher than 6 on a 6-sided dice is impossible because there are no faces numbered 7 or above.'
+        },
+        {
+          id:'PR-Y3-2',
+          code:'AC9M3P01',
+          descriptor:'AC9M3P01 – Identify practical activities and everyday events that involve chance; describe outcomes as likely, unlikely or impossible, and identify some events as equally likely',
+          question:'A bag has 1 red counter and 5 blue counters. Which word best describes the chance of picking a red counter?',
+          options:[
+            {label:'A',text:'Unlikely',correct:true,strategy:'1 red out of 6 total = 1/6 chance — this is less than half, so unlikely but not impossible'},
+            {label:'B',text:'Certain',correct:false,strategy:'Certain means it will definitely happen — there are blue counters too, so red is not certain'},
+            {label:'C',text:'Impossible',correct:false,strategy:'Impossible means it cannot happen — there IS a red counter, so it can be chosen'},
+            {label:'D',text:'Equally likely',correct:false,strategy:'Equally likely would mean red and blue have the same chance — but there are 5 blue and only 1 red'},
+          ],
+          explanation:'1 red out of 6 counters = 1/6 chance. This is less than half (3/6), so the event is "unlikely." It is not impossible (there is a red counter) and not equally likely (5 blue vs 1 red).'
+        },
+      ],
+
+      Y4: [
+        {
+          id:'PR-Y4-1',
+          code:'AC9M4P01',
+          descriptor:'AC9M4P01 – Describe possible everyday events and order their likelihood of occurring; identify and describe equally likely outcomes in chance experiments',
+          question:'A spinner has 4 equal sections: Red, Blue, Green, Yellow. What is the probability of landing on Blue?',
+          options:[
+            {label:'A',text:'1/4 (equally likely)',correct:true,strategy:'4 equal sections; 1 is blue. P(Blue) = 1/4. All outcomes are equally likely since sections are equal.'},
+            {label:'B',text:'1/3',correct:false,strategy:'1/3 would be correct if there were 3 equal sections — there are 4 here'},
+            {label:'C',text:'4/1',correct:false,strategy:'This fraction is greater than 1, which is not a valid probability (probabilities are between 0 and 1)'},
+            {label:'D',text:'2/4',correct:false,strategy:'2/4 = 1/2 would mean 2 blue sections out of 4 — there is only 1 blue section'},
+          ],
+          explanation:'4 equally likely outcomes, 1 is Blue. P(Blue) = 1/4. Since all sections are the same size, this is an equally likely chance experiment.'
+        },
+        {
+          id:'PR-Y4-2',
+          code:'AC9M4P02',
+          descriptor:'AC9M4P02 – Conduct chance experiments, record outcomes and describe results; compare results with predictions',
+          question:'A student predicts a coin will land on heads 5 out of 10 flips. They flip it 10 times and get heads 3 times. What is the best explanation?',
+          options:[
+            {label:'A',text:'Experimental results can differ from predictions — more flips would likely get closer to the predicted 1/2',correct:true,strategy:'Short-run variation is normal; 3/10 is an experimental result that differs from the theoretical 1/2, but does not mean the prediction was wrong'},
+            {label:'B',text:'The prediction was wrong because 3 ≠ 5',correct:false,strategy:'The prediction of 5/10 was based on correct theoretical probability (1/2). Experimental results vary — this does not make the prediction wrong.'},
+            {label:'C',text:'The coin must be unfair',correct:false,strategy:'3 heads in 10 flips is within normal variation for a fair coin — you would need many more trials to claim unfairness'},
+            {label:'D',text:'The next 10 flips will have 7 heads to make up the difference',correct:false,strategy:'Each flip is independent — past results do not affect future flips. This is known as the Gambler\'s Fallacy.'},
+          ],
+          explanation:'Experimental probability can differ from theoretical probability, especially with a small number of trials. More trials generally bring experimental results closer to theoretical probability.'
+        },
+      ],
+
+      Y5: [
+        {
+          id:'PR-Y5-1',
+          code:'AC9M5P01',
+          descriptor:'AC9M5P01 – List the possible outcomes of chance experiments involving equally likely outcomes and compare to those which are not equally likely',
+          question:'A bag contains 4 green, 3 yellow and 1 purple counter. Which statement is correct?',
+          options:[
+            {label:'A',text:'Drawing green is more likely than yellow because there are more green counters',correct:true,strategy:'P(green)=4/8=1/2, P(yellow)=3/8. Since 4 > 3, outcomes are NOT equally likely and green is more likely.'},
+            {label:'B',text:'All three colours are equally likely to be drawn',correct:false,strategy:'Equal likelihood requires the same number of each colour — here there are 4 green, 3 yellow, 1 purple (unequal)'},
+            {label:'C',text:'Purple is impossible to draw',correct:false,strategy:'There is 1 purple counter — it can be drawn (probability = 1/8), so it is not impossible'},
+            {label:'D',text:'Drawing yellow is more likely than green because yellow comes first alphabetically',correct:false,strategy:'Alphabetical order has no bearing on probability — the number of each colour determines likelihood'},
+          ],
+          explanation:'Equally likely outcomes require the same count. Here: green=4, yellow=3, purple=1. These are NOT equally likely. Green (4/8) > Yellow (3/8) > Purple (1/8). AC9M5P01 asks students to identify and compare equally and non-equally likely outcomes.'
+        },
+        {
+          id:'PR-Y5-2',
+          code:'AC9M5P01',
+          descriptor:'AC9M5P01 – List the possible outcomes of chance experiments involving equally likely outcomes and compare to those which are not equally likely',
+          question:'A standard dice is rolled. List the outcomes that are equally likely, and identify one event that is NOT equally likely compared to rolling a single number.',
+          options:[
+            {label:'A',text:'Rolling any single number (1, 2, 3, 4, 5 or 6) are all equally likely; rolling an even number is NOT equally likely to rolling a specific single number',correct:true,strategy:'Each face = 1/6 (equally likely). But "rolling even" = 3/6 = 1/2, which is more likely than rolling any one specific number (1/6).'},
+            {label:'B',text:'All outcomes including "rolling even" are equally likely',correct:false,strategy:'"Rolling even" covers 3 outcomes (2,4,6) giving probability 3/6=1/2, which is not equal to 1/6 — they are not equally likely'},
+            {label:'C',text:'Rolling any specific number is impossible on a fair dice',correct:false,strategy:'Each number (1–6) has probability 1/6 — they are possible and equally likely'},
+            {label:'D',text:'Rolling a number less than 6 and rolling a 6 are equally likely',correct:false,strategy:'P(<6) = 5/6 and P(=6) = 1/6 — clearly not equally likely'},
+          ],
+          explanation:'On a fair dice, each of the 6 faces has equal probability (1/6) — equally likely outcomes. "Rolling even" = P = 3/6 = 1/2, which is NOT equal to 1/6 — it covers 3 equally likely outcomes combined into one event.'
+        },
+        {
+          id:'PR-Y5-3',
+          code:'AC9M5P02',
+          descriptor:'AC9M5P02 – Conduct repeated chance experiments including those with and without equally likely outcomes, observe and record the results; use frequency to compare outcomes and estimate their likelihoods',
+          question:'A student rolls a dice 60 times and records: 1→8 times, 2→12 times, 3→9 times, 4→11 times, 5→10 times, 6→10 times. Based on these results, which number appeared with the highest frequency?',
+          options:[
+            {label:'A',text:'2 (appeared 12 times)',correct:true,strategy:'Compare frequencies: 8, 12, 9, 11, 10, 10 — the highest is 12, which corresponds to rolling a 2'},
+            {label:'B',text:'1 (appeared 8 times)',correct:false,strategy:'8 is the LOWEST frequency, not the highest — 1 appeared least often in this experiment'},
+            {label:'C',text:'4 (appeared 11 times)',correct:false,strategy:'11 is the second-highest frequency — but 12 (for rolling a 2) is higher'},
+            {label:'D',text:'All numbers appeared equally because it is a fair dice',correct:false,strategy:'The results show variation in frequency — experimental results do not match theoretical probability exactly, especially in small samples'},
+          ],
+          explanation:'Frequency comparison: 8, 12, 9, 11, 10, 10. Highest frequency = 12 → rolling a 2. In experiments, frequency varies even for equally likely outcomes. AC9M5P02 expects students to observe, record, and use frequency to compare outcomes.'
+        },
+        {
+          id:'PR-Y5-4',
+          code:'AC9M5P02',
+          descriptor:'AC9M5P02 – Conduct repeated chance experiments including those with and without equally likely outcomes, observe and record results; use frequency to compare outcomes and estimate their likelihoods',
+          question:'After 100 spins of a spinner, Red appeared 42 times, Blue 28 times, and Green 30 times. Based on these results, which colour is MOST likely on the next spin?',
+          options:[
+            {label:'A',text:'Red — it has the highest experimental frequency (42/100)',correct:true,strategy:'Using frequency to estimate likelihood: Red=42%, Blue=28%, Green=30%. Red has the highest observed frequency so is the best estimate for most likely.'},
+            {label:'B',text:'Blue — because it has the lowest frequency and is "due"',correct:false,strategy:'This is the Gambler\'s Fallacy — a lower past frequency does NOT make a future event more likely; each spin is independent'},
+            {label:'C',text:'All three are equally likely regardless of the results',correct:false,strategy:'If all three were truly equally likely, we would expect approximately 33 each — Red at 42 suggests it may have more sections than other colours'},
+            {label:'D',text:'Green — because it is in the middle',correct:false,strategy:'Being in the "middle" of frequency counts has no mathematical significance for estimating probability'},
+          ],
+          explanation:'Use experimental frequency to estimate likelihood: Red=42/100 is the highest. Based on observed data, Red appears most likely. AC9M5P02 asks students to use frequency from experiments to estimate likelihoods.'
+        },
+        {
+          id:'PR-Y5-5',
+          code:'AC9M5P01',
+          descriptor:'AC9M5P01 – List the possible outcomes of chance experiments involving equally likely outcomes and compare to those which are not equally likely',
+          question:'A standard dice is rolled once. How many equally likely outcomes are there, and what is the probability of rolling a 5?',
+          options:[
+            {label:'A',text:'6 equally likely outcomes; P(5) = 1/6',correct:true,strategy:'A fair dice has 6 faces, each equally likely. Rolling a 5 is 1 outcome out of 6 equally likely → P = 1/6'},
+            {label:'B',text:'2 outcomes (5 or not 5); P(5) = 1/2',correct:false,strategy:'While you could split outcomes into "5" or "not 5", these are NOT equally likely (1 vs 5 outcomes)'},
+            {label:'C',text:'6 outcomes; P(5) = 5/6',correct:false,strategy:'P(5) = 1/6 — using 5 as the numerator confuses the value on the dice with the count of favourable outcomes'},
+            {label:'D',text:'6 outcomes; P(5) = 5/1',correct:false,strategy:'5/1 = 5 — this is greater than 1, which is impossible for a probability'},
+          ],
+          explanation:'A fair dice has 6 faces: {1, 2, 3, 4, 5, 6} — 6 equally likely outcomes. Probability of any single face = 1/6. P(rolling a 5) = 1 favourable ÷ 6 total = 1/6.'
+        },
+        {
+          id:'PR-Y5-6',
+          code:'AC9M5P02',
+          descriptor:'AC9M5P02 – Conduct repeated chance experiments, observe and record results; use frequency to compare outcomes and estimate likelihoods',
+          question:'A student flips a coin 20 times and gets heads 13 times and tails 7 times. What is the best statement about this experiment?',
+          options:[
+            {label:'A',text:'The experimental probability of heads is 13/20, which differs from the theoretical 1/2 due to natural variation',correct:true,strategy:'13/20 ≠ 1/2, but this is expected variation in a small experiment — it does not prove the coin is unfair'},
+            {label:'B',text:'The coin is definitely unfair because heads appeared more than tails',correct:false,strategy:'13 heads in 20 flips is well within normal variation for a fair coin — much more evidence is needed before claiming bias'},
+            {label:'C',text:'The next 20 flips will definitely give 7 heads and 13 tails to balance out',correct:false,strategy:'This is the Gambler\'s Fallacy — each flip is independent; past results do not determine future outcomes'},
+            {label:'D',text:'The theoretical probability of heads should be changed to 13/20',correct:false,strategy:'Theoretical probability of a fair coin (1/2) is based on the coin\'s physical properties, not on one experimental result'},
+          ],
+          explanation:'Experimental probability (13/20) can differ from theoretical (1/2) due to natural variation, especially in small samples. AC9M5P02 expects students to understand that repeated experiments help estimate likelihoods, and that variation is expected.'
+        },
+        {
+          id:'PR-Y5-7',
+          code:'AC9M5P01',
+          descriptor:'AC9M5P01 – List the possible outcomes of chance experiments involving equally likely outcomes and compare to those which are not equally likely',
+          question:'A bag has 6 red, 4 blue and 2 yellow marbles. Compare P(red) and P(yellow). Which statement is true?',
+          options:[
+            {label:'A',text:'P(red) = 6/12 = 1/2; P(yellow) = 2/12 = 1/6; red is 3 times more likely than yellow',correct:true,strategy:'P(red)=6/12=1/2, P(yellow)=2/12=1/6. Ratio: (1/2)÷(1/6)=3 — red is 3 times more likely.'},
+            {label:'B',text:'P(red) and P(yellow) are equally likely',correct:false,strategy:'6 red vs 2 yellow — unequal counts mean unequal likelihoods'},
+            {label:'C',text:'P(yellow) > P(red) because yellow is rarer',correct:false,strategy:'Rarity means lower probability, not higher — more yellow would be needed for a higher probability'},
+            {label:'D',text:'P(red) = 6 and P(yellow) = 2',correct:false,strategy:'Probability must be expressed as a fraction between 0 and 1 — the count alone is not the probability'},
+          ],
+          explanation:'Total = 6+4+2 = 12. P(red) = 6/12 = 1/2. P(yellow) = 2/12 = 1/6. These are NOT equally likely. Red is 3 times more likely than yellow. AC9M5P01 compares equally and non-equally likely outcomes.'
+        },
+      ],
+
+      Y6: [
+        {
+          id:'PR-Y6-1',
+          code:'AC9M6P01',
+          descriptor:'AC9M6P01 – Recognise that probabilities lie on numerical scales of 0–1 or 0%–100% and use estimation to assign probabilities using common fractions, percentages and decimals',
+          question:'An event has probability 0.35. Which statements are all equivalent representations?',
+          options:[
+            {label:'A',text:'0.35 = 35% = 35/100 = 7/20',correct:true,strategy:'0.35 = 35/100 = 35% = 7/20 (simplified by dividing by 5). All are equivalent.'},
+            {label:'B',text:'0.35 = 3.5% = 35/1000',correct:false,strategy:'0.35 = 35%, not 3.5%. Moving the decimal gives percentage: 0.35 × 100 = 35%.'},
+            {label:'C',text:'0.35 = 35/10 = 3.5',correct:false,strategy:'35/10 = 3.5, which is greater than 1 — not a valid probability'},
+            {label:'D',text:'0.35 = 65% because the complement is 0.65',correct:false,strategy:'0.65 is the probability of the complementary event (1 − 0.35 = 0.65 = 65%), not an equivalent of 0.35'},
+          ],
+          explanation:'0.35: multiply by 100 for percentage → 35%. Write as fraction → 35/100. Simplify by GCF 5 → 7/20. All are equivalent. AC9M6P01 focuses on representing probabilities using fractions, decimals and percentages.'
+        },
+        {
+          id:'PR-Y6-2',
+          code:'AC9M6P02',
+          descriptor:'AC9M6P02 – Conduct repeated chance experiments and run simulations with an increasing number of trials; compare observations with expected results and discuss the effect on variation of increasing the number of trials',
+          question:'A spinner with 4 equal sections is spun 20 times (Red=7, Blue=4, Green=5, Yellow=4) then 200 times (Red=52, Blue=48, Green=51, Yellow=49). Which conclusion is best?',
+          options:[
+            {label:'A',text:'The 200-trial results are closer to the expected 1/4 for each colour, showing that more trials reduce variation',correct:true,strategy:'Expected = 25% each. 200 trials: 52/200=26%, 48/200=24% etc — all close to 25%. 20 trials showed 35% red — much more variable.'},
+            {label:'B',text:'The 20-trial results are more reliable because they are easier to collect',correct:false,strategy:'Ease of collection does not determine reliability — more trials give more reliable estimates of probability'},
+            {label:'C',text:'Red must have more sections because it appeared most often in both experiments',correct:false,strategy:'In the 200-trial result, Red (52) is very close to the expected 50 — no evidence of more red sections'},
+            {label:'D',text:'Both experiments show the same level of variation',correct:false,strategy:'The 20-trial experiment showed much more proportional variation (Red=35%) than the 200-trial (Red=26%) — this is the key learning'},
+          ],
+          explanation:'AC9M6P02: as the number of trials increases, experimental results get closer to theoretical probability and variation decreases. 200 trials (each ≈25%) shows less variation than 20 trials (Red=35%).'
+        },
+      ]
+    }
+  }
+
+};
+
+// ═══════════════════════════════════════════════════════════
+//  ENGINE
+// ═══════════════════════════════════════════════════════════
+const LEVELS = ['Y3', 'Y4', 'Y5', 'Y6'];
+const TOTAL_QUESTIONS = 7;
+const UP_STREAK = 2;
+const DOWN_STREAK = 2;
+
+let state = {};
+
+function buildStrandSelector() {
+  const grid = document.getElementById('strand-grid');
+  grid.innerHTML = '';
+  Object.entries(STRANDS).forEach(([key, strand]) => {
+    const card = document.createElement('div');
+    card.className = 'strand-card';
+    card.style.setProperty('--strand-color', strand.color);
+    card.innerHTML = `
+      <span class="strand-icon">${strand.icon}</span>
+      <div class="strand-name">${strand.name}</div>
+      <div class="strand-desc">${strand.desc}</div>
+      <div class="strand-questions">${TOTAL_QUESTIONS} adaptive questions · Year 3–6 branching · ACARA V9.0</div>
+    `;
+    card.onclick = () => startStrand(key);
+    grid.appendChild(card);
+  });
+}
+
+function startStrand(key) {
+  state = {
+    strand: key,
+    level: 'Y5',
+    qIndex: 0,
+    streak: [],
+    history: [],
+    answered: false,
+    qPointer: { Y3: 0, Y4: 0, Y5: 0, Y6: 0 }
+  };
+  document.getElementById('strand-selector').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'block';
+  document.getElementById('results-screen').style.display = 'none';
+  document.documentElement.style.setProperty('--strand-color-current', STRANDS[key].color);
+  document.getElementById('strand-label').textContent = STRANDS[key].name;
+  renderQuestion();
+}
+
+function getQuestion(level) {
+  const qs = STRANDS[state.strand].questions[level] || [];
+  if (qs.length === 0) {
+    const fallback = STRANDS[state.strand].questions['Y5'];
+    return fallback[state.qPointer['Y5'] % fallback.length];
+  }
+  return qs[state.qPointer[level] % qs.length];
+}
+
+function renderQuestion() {
+  const q = getQuestion(state.level);
+  state.answered = false;
+  const pct = (state.qIndex / TOTAL_QUESTIONS) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `Question ${state.qIndex + 1} of ${TOTAL_QUESTIONS}`;
+  const badge = document.getElementById('level-badge');
+  badge.className = 'level-badge level-' + state.level;
+  badge.textContent = 'Year ' + state.level.replace('Y', '');
+
+  // Streak dots
+  const row = document.getElementById('streak-row');
+  row.innerHTML = '';
+  for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'streak-dot';
+    if (i < state.streak.length) dot.classList.add(state.streak[i] === 'C' ? 'correct' : 'incorrect');
+    row.appendChild(dot);
+  }
+  const lbl = document.createElement('span');
+  lbl.className = 'streak-label';
+  const recent = state.streak.slice(-2);
+  if (recent.length === 2 && recent.every(s => s === 'C')) lbl.textContent = '🔥 On a roll!';
+  else if (recent.length === 2 && recent.every(s => s === 'I')) lbl.textContent = '💪 Keep going!';
+  row.appendChild(lbl);
+
+  document.getElementById('q-strand-tag').textContent = STRANDS[state.strand].name + ' · Year ' + state.level.replace('Y', '');
+  document.getElementById('q-descriptor').innerHTML = `<strong>${q.code}</strong> – ${q.descriptor.split('–')[1] ? q.descriptor.split('–').slice(1).join('–').trim() : q.descriptor}`;
+  document.getElementById('q-text').textContent = q.question;
+
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-label">${opt.label}</span><span>${opt.text}</span>`;
+    btn.onclick = () => handleAnswer(opt, i, q);
+    grid.appendChild(btn);
+  });
+  document.getElementById('feedback-area').innerHTML = '';
+  document.getElementById('level-change-area').innerHTML = '';
+}
+
+function handleAnswer(chosen, chosenIdx, q) {
+  if (state.answered) return;
+  state.answered = true;
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(b => b.disabled = true);
+  const isCorrect = chosen.correct;
+  buttons.forEach((btn, i) => {
+    if (i === chosenIdx) btn.classList.add(isCorrect ? 'correct' : 'incorrect');
+    else if (q.options[i].correct && !isCorrect) btn.classList.add('reveal-correct');
+  });
+  state.streak.push(isCorrect ? 'C' : 'I');
+  state.history.push({ question: q.question, level: state.level, correct: isCorrect, chosen: chosen.text, strategy: chosen.strategy, explanation: q.explanation, descriptor: q.descriptor, code: q.code });
+  state.qPointer[state.level] = (state.qPointer[state.level] || 0) + 1;
+
+  const fb = document.createElement('div');
+  fb.className = `feedback-box ${isCorrect ? 'correct' : 'incorrect'}`;
+  fb.innerHTML = `
+    <div class="feedback-title">${isCorrect ? '✓ Correct!' : '✗ Not quite.'}</div>
+    <div>${q.explanation}</div>
+    <div class="feedback-strategy"><strong>Why that answer seems right:</strong> ${chosen.strategy}</div>
+    <button class="next-btn" onclick="nextQuestion()">${state.qIndex + 1 >= TOTAL_QUESTIONS ? 'See Results →' : 'Next Question →'}</button>
+  `;
+  document.getElementById('feedback-area').appendChild(fb);
+}
+
+function nextQuestion() {
+  state.qIndex++;
+  if (state.qIndex >= TOTAL_QUESTIONS) { showResults(); return; }
+  const prevIdx = LEVELS.indexOf(state.level);
+  const recentDown = state.streak.slice(-DOWN_STREAK);
+  const recentUp = state.streak.slice(-UP_STREAK);
+  let notice = null;
+  if (recentDown.length >= DOWN_STREAK && recentDown.every(s => s === 'I') && prevIdx > 0) {
+    state.level = LEVELS[prevIdx - 1];
+    notice = { type: 'level-down', text: `📉 Branching to Year ${state.level.replace('Y','')} content to build foundational understanding` };
+  } else if (recentUp.length >= UP_STREAK && recentUp.every(s => s === 'C') && prevIdx < LEVELS.length - 1) {
+    state.level = LEVELS[prevIdx + 1];
+    notice = { type: 'level-up', text: `📈 Strong work! Extending to Year ${state.level.replace('Y','')} content` };
+  }
+  const area = document.getElementById('level-change-area');
+  area.innerHTML = notice ? `<div class="level-change-notice ${notice.type}">${notice.text}</div>` : '';
+  renderQuestion();
+}
+
+function showResults() {
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('results-screen').style.display = 'block';
+  const total = state.history.length;
+  const correct = state.history.filter(h => h.correct).length;
+  const pct = Math.round((correct / total) * 100);
+  document.getElementById('results-score').textContent = `${correct}/${total}`;
+  const msgs = { 90:'Outstanding — ready for extension', 75:'Strong understanding at Year 5', 60:'Developing — some gaps to address', 40:'Foundational work needed', 0:'Let\'s revisit key concepts together' };
+  const msg = Object.entries(msgs).reverse().find(([k]) => pct >= Number(k))[1];
+  document.getElementById('results-label').textContent = `${pct}% · ${msg}`;
+
+  const breakdown = document.getElementById('results-breakdown');
+  breakdown.innerHTML = '';
+  state.history.forEach((h, i) => {
+    const row = document.createElement('div');
+    row.className = 'breakdown-item';
+    row.innerHTML = `
+      <div class="breakdown-q">
+        <strong>Q${i+1} ${h.correct ? '✓' : '✗'} — ${h.code}</strong>
+        ${h.question.substring(0, 70)}…
+      </div>
+      <div class="breakdown-meta">
+        <span class="breakdown-pill pill-${h.level}">Yr ${h.level.replace('Y','')}</span>
+      </div>
+    `;
+    breakdown.appendChild(row);
+  });
+
+  const strandName = STRANDS[state.strand].name;
+  const levelsUsed = [...new Set(state.history.map(h => h.level))];
+  const wrong = state.history.filter(h => !h.correct);
+  let note = `<strong>Teacher Note — ${strandName} (ACARA V9.0)</strong><br><br>`;
+  note += `Student worked across: ${levelsUsed.map(l => 'Year '+l.replace('Y','')).join(', ')}. `;
+  if (pct >= 80) note += `Performance suggests readiness for Year 6 extension in ${strandName}.`;
+  else if (pct >= 60) note += `Continue consolidating Year 5 ${strandName} content before extension.`;
+  else note += `Consider revisiting Year 3–4 foundational ${strandName} content before progressing.`;
+  if (wrong.length > 0) {
+    note += `<br><br><strong>Content descriptors to revisit:</strong><br>`;
+    note += wrong.slice(0,4).map(h => `• <strong>${h.code}</strong> — ${h.descriptor.split('–').slice(1).join('–').trim().substring(0,80)}…`).join('<br>');
+  }
+  document.getElementById('teaching-note').innerHTML = note;
+}
+
+function goHome() {
+  document.getElementById('strand-selector').style.display = 'block';
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('results-screen').style.display = 'none';
+  document.documentElement.style.removeProperty('--strand-color-current');
+}
+
+buildStrandSelector();
+</script>
+</body>
+</html>
