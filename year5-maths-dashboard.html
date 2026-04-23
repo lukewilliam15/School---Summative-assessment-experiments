@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Year 5 Mathematics — Teacher Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#222636;--border:#2a2f42;
+  --text:#e8eaf0;--muted:#7a8099;--accent:#4ade80;--accent-dim:#1a3d2a;
+  --warn:#f87171;--warn-dim:#3d1a1a;--gold:#fbbf24;--gold-dim:#3d300a;
+  --blue:#60a5fa;--blue-dim:#0a1a3d;--purple:#c084fc;--purple-dim:#2a1040;
+  --teal:#2dd4bf;--teal-dim:#0a2a28;--orange:#fb923c;--orange-dim:#3d1a0a;
+  --radius:10px;--shadow:0 4px 24px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+  background-image:radial-gradient(ellipse at 20% 20%,rgba(74,222,128,.04) 0%,transparent 40%),
+  radial-gradient(ellipse at 80% 80%,rgba(96,165,250,.04) 0%,transparent 40%);}
+
+/* ── HEADER ── */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.header-left h1{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;letter-spacing:-.02em;}
+.header-left p{font-size:.75rem;color:var(--muted);margin-top:3px;}
+.header-badge{background:var(--accent-dim);color:var(--accent);font-size:.7rem;font-weight:600;padding:5px 12px;border-radius:20px;letter-spacing:.05em;border:1px solid var(--accent);text-transform:uppercase;}
+.header-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.btn{padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;border:none;}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--text);color:var(--text);}
+.btn-warn{background:var(--warn-dim);color:var(--warn);border:1px solid var(--warn);}
+.btn-warn:hover{opacity:.8;}
+.btn-primary{background:var(--accent);color:#0f1117;}
+.btn-primary:hover{opacity:.85;}
+
+/* ── LAYOUT ── */
+.container{max-width:1200px;margin:0 auto;padding:32px 20px 80px;}
+
+/* ── EMPTY STATE ── */
+#empty-state{text-align:center;padding:80px 20px;}
+.empty-icon{font-size:4rem;margin-bottom:16px;}
+.empty-title{font-family:'Fraunces',serif;font-size:1.8rem;margin-bottom:10px;}
+.empty-sub{color:var(--muted);font-size:.9rem;line-height:1.7;max-width:480px;margin:0 auto 24px;}
+.setup-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:500px;margin:24px auto;text-align:left;}
+.setup-box h3{font-family:'Fraunces',serif;font-size:1rem;margin-bottom:12px;color:var(--accent);}
+.setup-box ol{padding-left:18px;font-size:.85rem;line-height:2;color:var(--muted);}
+.setup-box ol strong{color:var(--text);}
+
+/* ── STATS BANNER ── */
+.stats-banner{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:28px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
+.stat-value{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:700;line-height:1;margin-bottom:4px;}
+.stat-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.stat-sub{font-size:.75rem;color:var(--muted);margin-top:6px;}
+
+/* ── SECTION TITLE ── */
+.section-title{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.section-title span{font-size:.72rem;font-weight:400;color:var(--muted);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.05em;}
+
+/* ── STRAND SUMMARY CARDS ── */
+.strand-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:32px;}
+.strand-summary{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden;}
+.strand-summary::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--sc);}
+.ss-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.ss-name{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px;}
+.ss-avg{font-size:1.6rem;font-weight:700;color:var(--sc);}
+.ss-bar-wrap{height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:10px;}
+.ss-bar{height:100%;border-radius:99px;transition:width .8s ease;}
+.ss-stats{display:flex;justify-content:space-between;font-size:.73rem;color:var(--muted);margin-bottom:12px;}
+.ss-alert{font-size:.76rem;padding:8px 10px;border-radius:6px;line-height:1.5;}
+.ss-alert.needs-work{background:var(--warn-dim);color:var(--warn);border-left:3px solid var(--warn);}
+.ss-alert.on-track{background:var(--accent-dim);color:var(--accent);border-left:3px solid var(--accent);}
+.ss-alert.developing{background:var(--gold-dim);color:var(--gold);border-left:3px solid var(--gold);}
+
+/* ── BAR CHART ── */
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:28px;}
+.bar-chart{display:flex;align-items:flex-end;gap:12px;height:200px;padding-top:12px;}
+.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;}
+.bar-col{width:100%;border-radius:6px 6px 0 0;min-width:32px;position:relative;display:flex;align-items:flex-end;justify-content:center;}
+.bar-pct-label{position:absolute;top:-22px;font-size:.7rem;font-weight:600;white-space:nowrap;color:var(--text);}
+.bar-label{font-size:.72rem;color:var(--muted);text-align:center;}
+.chart-baseline{height:2px;background:var(--border);border-radius:1px;margin:0;}
+
+/* ── STUDENT TABLE ── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:28px;}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.table-header h3{font-family:'Fraunces',serif;font-size:1rem;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:var(--surface2);padding:10px 14px;text-align:left;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
+tbody tr:hover{background:var(--surface2);}
+tbody tr:last-child{border-bottom:none;}
+td{padding:10px 14px;font-size:.82rem;}
+.td-name{font-weight:600;}
+.td-pct{font-weight:600;font-family:'DM Mono',monospace;font-size:.8rem;}
+.pct-pill{padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:600;}
+.p-high{background:var(--accent-dim);color:var(--accent);}
+.p-mid{background:var(--gold-dim);color:var(--gold);}
+.p-low{background:var(--warn-dim);color:var(--warn);}
+.strand-mini{width:20px;height:20px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;vertical-align:middle;}
+
+/* ── WEAKEST STRAND ALERT ── */
+.priority-alert{background:var(--warn-dim);border:1px solid var(--warn);border-radius:12px;padding:20px 24px;margin-bottom:28px;}
+.priority-alert h3{font-family:'Fraunces',serif;color:var(--warn);font-size:1.05rem;margin-bottom:8px;}
+.priority-alert p{font-size:.85rem;line-height:1.7;color:var(--text);}
+.priority-alert ul{margin-top:8px;padding-left:18px;font-size:.82rem;line-height:1.9;color:var(--muted);}
+
+/* ── IMPORT BOX ── */
+.import-box{background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;}
+.import-box p{font-size:.82rem;color:var(--muted);margin-bottom:10px;}
+.sample-btn{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue);padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;}
+.sample-btn:hover{opacity:.8;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.fade-in{animation:fadeUp .4s ease both;}
+
+/* ── CLASS CODES ── */
+.codes-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:28px;}
+.codes-section h3{font-family:'Fraunces',serif;font-size:1.1rem;margin-bottom:6px;}
+.codes-section .sub{font-size:.8rem;color:var(--muted);margin-bottom:18px;}
+.code-form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+.code-field{display:flex;flex-direction:column;gap:4px;}
+.code-field label{font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.code-field input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text);outline:none;min-width:160px;}
+.code-field input:focus{border-color:var(--accent);}
+.strand-toggles{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.strand-tog{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;user-select:none;}
+.strand-tog.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.codes-hint{font-size:.75rem;color:var(--muted);margin-bottom:14px;}
+.code-created{background:var(--accent-dim);border:1px solid var(--accent);border-radius:10px;padding:14px 18px;margin-top:14px;display:none;}
+.code-created .code-val{font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--accent);letter-spacing:.15em;}
+.code-created p{font-size:.78rem;color:var(--muted);margin-top:4px;}
+.existing-codes{margin-top:18px;}
+.existing-codes h4{font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+.code-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-radius:8px;margin-bottom:6px;gap:10px;flex-wrap:wrap;}
+.code-badge{font-family:'DM Mono',monospace;font-weight:700;font-size:.9rem;letter-spacing:.1em;color:var(--accent);}
+.code-meta{font-size:.75rem;color:var(--muted);flex:1;}
+.code-del{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:.74rem;color:var(--muted);cursor:pointer;}
+.code-del:hover{border-color:var(--warn);color:var(--warn);}
+.toggle-section-btn{background:none;border:none;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <h1>Year 5 Mathematics — Teacher Dashboard</h1>
+    <p>ACARA V9.0 · Adaptive Assessment · Class Results</p>
+  </div>
+  <div class="header-actions">
+    <span class="header-badge">Teacher View</span>
+    <button class="btn btn-primary" onclick="refreshDashboard()">↻ Refresh Results</button>
+    <button class="btn btn-ghost" onclick="exportCSV()">⤓ Export CSV</button>
+    <button class="btn btn-warn" onclick="clearData()">✕ Clear All Data</button>
+  </div>
+</header>
+
+<div class="container" id="main-content">
+  <div id="empty-state">
+    <div class="empty-icon">📊</div>
+    <div class="empty-title">No student results yet</div>
+    <p class="empty-sub">Once students complete the assessment on the same device or browser, their results will appear here automatically.</p>
+    <div class="setup-box">
+      <h3>How results reach this dashboard</h3>
+      <ol>
+        <li>Create a <strong>Class Code</strong> in the section below and share it with students</li>
+        <li>Students open <strong>year5-maths-assessment.html</strong> on any device with internet</li>
+        <li>Students type their name, enter the class code, complete the assessment</li>
+        <li>Students click <strong>"Save &amp; Submit Results"</strong> — results are sent automatically</li>
+        <li>Click <strong>↻ Refresh Results</strong> above — all submitted results appear here instantly</li>
+      </ol>
+    </div>
+    <div class="import-box">
+      <p>No results yet. Students must complete and submit the assessment first.</p>
+      <p style="margin-top:10px;font-size:.75rem;color:var(--muted);">Want to explore the dashboard with demo data?</p>
+      <button class="sample-btn" onclick="loadSampleData()">Load Sample Data (6 Students)</button>
+    </div>
+  </div>
+  <div id="dashboard-content" style="display:none;"></div>
+
+  <!-- BIN ID PANEL -->
+  <div class="codes-section" style="margin-top:28px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <h3>🔗 JSONbin Connection</h3>
+        <p class="sub">Enter the Bin ID so this dashboard knows where to fetch student results from.</p>
+      </div>
+      <div id="bin-status-badge" style="font-size:.75rem;font-weight:600;padding:4px 12px;border-radius:20px;background:var(--warn-dim);color:var(--warn);">Not connected</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:14px;">
+      <div class="code-field" style="flex:1;min-width:200px;">
+        <label>Bin ID</label>
+        <input id="bin-id-input" type="text" placeholder="e.g. 64a1b2c3d4e5f6a7b8c9d0e1" style="font-family:monospace;letter-spacing:.04em;" class="code-field input">
+      </div>
+      <button class="btn btn-primary" onclick="saveBinId()">Save &amp; Connect</button>
+      <button class="btn btn-ghost" onclick="clearBinId()">Disconnect</button>
+    </div>
+    <div id="bin-id-hint" style="margin-top:10px;font-size:.78rem;color:var(--muted);line-height:1.6;">
+      The Bin ID is created automatically when the <strong>first student submits</strong> their results.
+      Open the dashboard on that student's device, click <strong>↻ Refresh Results</strong> once,
+      then go to your browser console (<kbd>F12</kbd> → Console) and type:
+      <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:.78rem;">localStorage.getItem('aimebee_binId')</code>
+      — copy the value shown and paste it above.
+    </div>
+  </div>
+
+  <!-- CLASS CODES PANEL -->
+  <div class="codes-section" style="margin-top:28px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <h3>🔑 Class Codes</h3>
+        <p class="sub">Create a code to give students. They enter it on the assessment — only the strands you assign will be available.</p>
+      </div>
+      <button class="toggle-section-btn" onclick="toggleCodeForm()">▼ Create new code</button>
+    </div>
+    <div id="code-form-wrap" style="display:none;margin-top:16px;">
+      <div class="code-form-row">
+        <div class="code-field">
+          <label>Class Code</label>
+          <input id="new-code-input" type="text" placeholder="e.g. MATHS5A" maxlength="20" style="text-transform:uppercase;letter-spacing:.08em;">
+        </div>
+      </div>
+      <div class="codes-hint">Select strands to assign (leave all unselected = all 6 strands available):</div>
+      <div class="strand-toggles" id="strand-toggles"></div>
+      <button class="btn btn-primary" onclick="createCode()">Create Code</button>
+      <div class="code-created" id="code-created">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;">Code ready — share with students:</div>
+        <div class="code-val" id="code-val-display"></div>
+        <p id="code-detail-display"></p>
+      </div>
+    </div>
+    <div class="existing-codes" id="existing-codes"></div>
+  </div>
+</div>
+
+<script>
+const STRAND_META={
+  number:{name:'Number',icon:'🔢',color:'#4ade80'},
+  algebra:{name:'Algebra',icon:'🔣',color:'#60a5fa'},
+  measurement:{name:'Measurement',icon:'📏',color:'#fb923c'},
+  space:{name:'Space',icon:'📐',color:'#c084fc'},
+  statistics:{name:'Statistics',icon:'📊',color:'#2dd4bf'},
+  probability:{name:'Probability',icon:'🎲',color:'#fbbf24'}
+};
+
+const STRAND_KEYS=Object.keys(STRAND_META);
+
+const STRAND_RECOMMENDATIONS={
+  number:'Focus on place value with decimals (AC9M5N01), connecting fractions/decimals/percentages (AC9M5N04), and interpreting division remainders in context (AC9M5N07).',
+  algebra:'Prioritise multiplication/division fact families and inverse operations (AC9M5A01–A02). Use concrete materials to find unknown values in equations.',
+  measurement:'Address perimeter vs area confusion (AC9M5M02). Practise unit conversions (AC9M5M01) and 12/24-hour time problems crossing the hour (AC9M5M03).',
+  space:'Use physical nets to connect 2D representations to 3D objects (AC9M5SP01). Reinforce coordinate system use in all four quadrants (AC9M5SP02) and grid-based transformations (AC9M5SP03).',
+  statistics:'Ensure students can identify and interpret the mode in context (AC9M5ST01). Practise reading and interpreting line graphs for change over time (AC9M5ST02).',
+  probability:'Build on distinguishing equally and non-equally likely outcomes (AC9M5P01). Conduct repeated experiments and discuss why results vary from theoretical probability (AC9M5P02).'
+};
+
+// ═══════════════════════════════════════════════════════════
+// JSONBIN — cloud data layer
+// ═══════════════════════════════════════════════════════════
+const JBIN={
+  key:'$2a$10$Ux9lOEzPxIadMXPqbhcxY.ugQ63rE2Pu4L3Y4IKNXySL31LU3bqiC',
+  baseUrl:'https://api.jsonbin.io/v3',
+  getBinId(){return localStorage.getItem('aimebee_binId')||null;},
+  async fetchResults(){
+    const binId=this.getBinId();
+    if(!binId)return[];
+    try{
+      const res=await fetch(this.baseUrl+'/b/'+binId+'/latest',{headers:{'X-Master-Key':this.key}});
+      if(!res.ok)return[];
+      const data=await res.json();
+      return(data.record&&data.record.results)||[];
+    }catch(e){return[];}
+  },
+  async clearResults(){
+    const binId=this.getBinId();
+    if(!binId)return;
+    await fetch(this.baseUrl+'/b/'+binId,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':this.key},
+      body:JSON.stringify({results:[]})
+    });
+  }
+};
+
+function getLocalResults(){return JSON.parse(localStorage.getItem('yr5mathResults_local')||'[]');}
+function setLocalResults(arr){localStorage.setItem('yr5mathResults_local',JSON.stringify(arr));}
+
+async function refreshDashboard(){
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('dashboard-content').style.display='block';
+  document.getElementById('dashboard-content').innerHTML=
+    '<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:2rem;margin-bottom:12px;">&#x23F3;</div><div style="font-size:.9rem;">Fetching results from server…</div></div>';
+  let results=await JBIN.fetchResults();
+  const local=getLocalResults();
+  if(local.length)results=[...results,...local];
+  renderCodes();
+  if(!results.length){
+    document.getElementById('empty-state').style.display='block';
+    document.getElementById('dashboard-content').style.display='none';
+    return;
+  }
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('dashboard-content').style.display='block';
+  renderDashboard(results);
+}
+
+function renderDashboard(results){
+  const dc=document.getElementById('dashboard-content');
+  dc.innerHTML='';
+
+  // ── compute strand averages ──
+  const strandData={};
+  STRAND_KEYS.forEach(k=>{
+    const scores=results.filter(r=>r.strands&&r.strands[k]).map(r=>r.strands[k].pct);
+    strandData[k]={scores,avg:scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null,n:scores.length};
+  });
+
+  const totalAvg=Math.round(Object.values(strandData).filter(s=>s.avg!==null).reduce((a,s)=>a+s.avg,0)/STRAND_KEYS.length);
+  const weakest=STRAND_KEYS.filter(k=>strandData[k].avg!==null).sort((a,b)=>strandData[a].avg-strandData[b].avg)[0];
+  const strongest=STRAND_KEYS.filter(k=>strandData[k].avg!==null).sort((a,b)=>strandData[b].avg-strandData[a].avg)[0];
+
+  // ── stats banner ──
+  const banner=document.createElement('div');
+  banner.className='stats-banner fade-in';
+  banner.innerHTML=`
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent)">${results.length}</div><div class="stat-label">Students</div><div class="stat-sub">Results recorded</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--blue)">${totalAvg}%</div><div class="stat-label">Class Average</div><div class="stat-sub">Across all strands</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--warn)">${STRAND_META[weakest].icon}</div><div class="stat-label">Weakest Strand</div><div class="stat-sub">${STRAND_META[weakest].name} — ${strandData[weakest].avg}% avg</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent)">${STRAND_META[strongest].icon}</div><div class="stat-label">Strongest Strand</div><div class="stat-sub">${STRAND_META[strongest].name} — ${strandData[strongest].avg}% avg</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--purple)">${results.filter(r=>r.strands&&Object.keys(r.strands).length===6).length}</div><div class="stat-label">Completed All</div><div class="stat-sub">All 6 strands</div></div>
+  `;
+  dc.appendChild(banner);
+
+  // ── priority alert ──
+  if(strandData[weakest].avg!==null){
+    const alert=document.createElement('div');
+    alert.className='priority-alert fade-in';
+    alert.innerHTML=`<h3>⚠ Priority Focus: ${STRAND_META[weakest].icon} ${STRAND_META[weakest].name} (${strandData[weakest].avg}% class average)</h3>
+    <p>${STRAND_RECOMMENDATIONS[weakest]}</p>
+    <ul>
+      <li>Consider targeted small-group intervention for the ${results.filter(r=>r.strands&&r.strands[weakest]&&r.strands[weakest].pct<40).length} students scoring below 40%</li>
+      <li>Review the ACARA V9.0 content descriptors for ${STRAND_META[weakest].name} and align upcoming lessons accordingly</li>
+      <li>Use the adaptive branching data to identify which Year level content each student was working at in this strand</li>
+    </ul>`;
+    dc.appendChild(alert);
+  }
+
+  // ── bar chart ──
+  const chartWrap=document.createElement('div');
+  chartWrap.className='chart-wrap fade-in';
+  const maxPct=100;
+  const bars=STRAND_KEYS.map(k=>{
+    const {avg,color,name,icon}={...strandData[k],...STRAND_META[k]};
+    const h=avg!=null?Math.round((avg/maxPct)*160):0;
+    const colClass=avg>=70?'var(--accent)':avg>=40?'var(--gold)':'var(--warn)';
+    return `<div class="bar-group">
+      <div style="flex:1;display:flex;align-items:flex-end;width:100%">
+        <div class="bar-col" style="height:${h}px;background:${STRAND_META[k].color};opacity:.85;width:100%">
+          <span class="bar-pct-label">${avg!=null?avg+'%':'—'}</span>
+        </div>
+      </div>
+      <div class="bar-label">${icon}<br>${name}</div>
+    </div>`;
+  }).join('');
+
+  chartWrap.innerHTML=`
+    <div class="section-title">Strand Performance Overview <span>Class average % per strand</span></div>
+    <div style="display:flex;align-items:flex-end;gap:4px;margin-bottom:4px;padding-left:8px;">
+      <div style="font-size:.65rem;color:var(--muted);width:40px;text-align:right;margin-bottom:2px;">100%</div>
+      <div style="flex:1;border-bottom:1px dashed var(--border);margin-bottom:1px;"></div>
+    </div>
+    <div class="bar-chart">${bars}</div>
+    <div class="chart-baseline"></div>
+    <div style="display:flex;gap:20px;margin-top:14px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:.73rem;color:var(--muted)"><div style="width:10px;height:10px;border-radius:2px;background:var(--accent)"></div>≥70% Strong</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:.73rem;color:var(--muted)"><div style="width:10px;height:10px;border-radius:2px;background:var(--gold)"></div>40–69% Developing</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:.73rem;color:var(--muted)"><div style="width:10px;height:10px;border-radius:2px;background:var(--warn)"></div>&lt;40% Needs Support</div>
+    </div>`;
+  dc.appendChild(chartWrap);
+
+  // ── strand summary cards ──
+  const cardsSection=document.createElement('div');
+  cardsSection.innerHTML=`<div class="section-title" style="margin-bottom:14px">Strand-by-Strand Analysis <span>All ${results.length} students</span></div>`;
+  const cardsGrid=document.createElement('div');
+  cardsGrid.className='strand-cards';
+
+  STRAND_KEYS.forEach(k=>{
+    const {avg,scores,n}=strandData[k];
+    const m=STRAND_META[k];
+    if(avg===null)return;
+    const below40=scores.filter(s=>s<40).length;
+    const above70=scores.filter(s=>s>=70).length;
+    const alertClass=avg<40?'needs-work':avg<70?'developing':'on-track';
+    const alertMsg=avg<40
+      ?`⚠ ${below40}/${n} students need support. Prioritise foundational content.`
+      :avg<70
+      ?`📈 ${n-above70}/${n} still developing. Target consolidation activities.`
+      :`✓ ${above70}/${n} performing strongly. Consider extension tasks.`;
+
+    const card=document.createElement('div');
+    card.className='strand-summary';
+    card.style.setProperty('--sc',m.color);
+    card.innerHTML=`
+      <div class="ss-header">
+        <div class="ss-name">${m.icon} ${m.name}</div>
+        <div class="ss-avg" style="color:${avg>=70?'var(--accent)':avg>=40?'var(--gold)':'var(--warn)'}">${avg}%</div>
+      </div>
+      <div class="ss-bar-wrap"><div class="ss-bar" style="width:${avg}%;background:${avg>=70?'var(--accent)':avg>=40?'var(--gold)':'var(--warn)'}"></div></div>
+      <div class="ss-stats">
+        <span>${n} students attempted</span>
+        <span>≥70%: ${above70} | &lt;40%: ${below40}</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        ${scores.map((s,i)=>`<div title="${results[i]?results[i].name:'Student'}: ${s}%" style="width:28px;height:28px;border-radius:6px;background:${s>=70?'var(--accent-dim)':s>=40?'var(--gold-dim)':'var(--warn-dim)'};border:1px solid ${s>=70?'var(--accent)':s>=40?'var(--gold)':'var(--warn)'};display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:${s>=70?'var(--accent)':s>=40?'var(--gold)':'var(--warn)'}">${s}%</div>`).join('')}
+      </div>
+      <div class="ss-alert ${alertClass}">${alertMsg}</div>
+      <div style="margin-top:10px;font-size:.72rem;color:var(--muted);line-height:1.5;">${STRAND_RECOMMENDATIONS[k]}</div>`;
+    cardsGrid.appendChild(card);
+  });
+
+  cardsSection.appendChild(cardsGrid);
+  dc.appendChild(cardsSection);
+
+  // ── distribution chart (dot plot style) ──
+  const distWrap=document.createElement('div');
+  distWrap.className='chart-wrap fade-in';
+  distWrap.innerHTML=`<div class="section-title">Score Distribution per Strand <span>Each dot = one student</span></div>
+  <div id="dot-chart-area"></div>`;
+  dc.appendChild(distWrap);
+
+  setTimeout(()=>{
+    const area=document.getElementById('dot-chart-area');
+    if(!area)return;
+    STRAND_KEYS.forEach(k=>{
+      const {scores}=strandData[k];
+      const m=STRAND_META[k];
+      if(!scores.length)return;
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:14px;';
+      row.innerHTML=`<div style="width:90px;font-size:.75rem;color:var(--muted);flex-shrink:0">${m.icon} ${m.name}</div>
+        <div style="flex:1;position:relative;height:28px;background:linear-gradient(to right,var(--warn-dim),var(--gold-dim),var(--accent-dim));border-radius:6px;border:1px solid var(--border);">
+          ${scores.map(s=>`<div title="${s}%" style="position:absolute;left:${s}%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:${s>=70?m.color:s>=40?'var(--gold)':'var(--warn)'};top:7px;border:2px solid var(--bg);cursor:pointer;" onclick=""></div>`).join('')}
+          <div style="position:absolute;left:40%;top:0;height:100%;width:1px;background:var(--gold);opacity:.4;"></div>
+          <div style="position:absolute;left:70%;top:0;height:100%;width:1px;background:var(--accent);opacity:.4;"></div>
+        </div>
+        <div style="width:36px;font-size:.72rem;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0">${Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)}%</div>`;
+      area.appendChild(row);
+    });
+    // axis labels
+    const axis=document.createElement('div');
+    axis.style.cssText='display:flex;align-items:center;gap:12px;padding-top:4px;';
+    axis.innerHTML=`<div style="width:90px"></div>
+      <div style="flex:1;position:relative;font-size:.65rem;color:var(--muted);">
+        <span style="position:absolute;left:0">0%</span>
+        <span style="position:absolute;left:25%;transform:translateX(-50%)">25%</span>
+        <span style="position:absolute;left:40%;transform:translateX(-50%);color:var(--gold)">40%</span>
+        <span style="position:absolute;left:50%;transform:translateX(-50%)">50%</span>
+        <span style="position:absolute;left:70%;transform:translateX(-50%);color:var(--accent)">70%</span>
+        <span style="position:absolute;right:0">100%</span>
+      </div><div style="width:36px"></div>`;
+    area.appendChild(axis);
+  },100);
+
+  // ── student table ──
+  const tableWrap=document.createElement('div');
+  tableWrap.className='table-wrap fade-in';
+
+  const strandHeaders=STRAND_KEYS.map(k=>`<th>${STRAND_META[k].icon} ${STRAND_META[k].name.substring(0,4)}.</th>`).join('');
+  const rows=results.map((r,i)=>{
+    const overall=r.strands?Math.round(Object.values(r.strands).reduce((a,s)=>a+s.pct,0)/Object.keys(r.strands).length):0;
+    const pillClass=overall>=70?'p-high':overall>=40?'p-mid':'p-low';
+    const cells=STRAND_KEYS.map(k=>{
+      const s=r.strands&&r.strands[k];
+      if(!s)return `<td style="color:var(--muted);font-size:.7rem">—</td>`;
+      const col=s.pct>=70?'var(--accent)':s.pct>=40?'var(--gold)':'var(--warn)';
+      return `<td><span class="td-pct" style="color:${col}">${s.pct}%</span></td>`;
+    }).join('');
+    const ts=new Date(r.timestamp);
+    const timeStr=ts.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+    return `<tr>
+      <td class="td-name">${r.name||'Student '+(i+1)}</td>
+      <td><span class="pct-pill ${pillClass}">${overall}%</span></td>
+      ${cells}
+      <td style="color:var(--muted);font-size:.72rem">${timeStr}</td>
+    </tr>`;
+  }).join('');
+
+  tableWrap.innerHTML=`
+    <div class="table-header">
+      <h3>Individual Student Results</h3>
+      <div style="font-size:.75rem;color:var(--muted)">${results.length} students</div>
+    </div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Student</th><th>Overall</th>${strandHeaders}<th>Time</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    </div>`;
+  dc.appendChild(tableWrap);
+
+  // ── per-student row (expandable detail) ──
+  const detailWrap=document.createElement('div');
+  detailWrap.className='chart-wrap fade-in';
+  detailWrap.innerHTML=`<div class="section-title">Student Strand Profiles <span>Individual radar comparison</span></div>
+    <div id="profiles-area" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;"></div>`;
+  dc.appendChild(detailWrap);
+
+  setTimeout(()=>{
+    const pa=document.getElementById('profiles-area');
+    if(!pa)return;
+    results.forEach(r=>{
+      if(!r.strands)return;
+      const card=document.createElement('div');
+      card.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;';
+      const overall=Math.round(Object.values(r.strands).reduce((a,s)=>a+s.pct,0)/Object.keys(r.strands).length);
+      const pillClass=overall>=70?'p-high':overall>=40?'p-mid':'p-low';
+      let bars='';
+      STRAND_KEYS.forEach(k=>{
+        const s=r.strands[k];
+        if(!s)return;
+        const col=s.pct>=70?'var(--accent)':s.pct>=40?'var(--gold)':'var(--warn)';
+        bars+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+          <div style="font-size:.7rem;color:var(--muted);width:80px;flex-shrink:0">${STRAND_META[k].icon} ${STRAND_META[k].name.substring(0,7)}</div>
+          <div style="flex:1;height:8px;background:var(--border);border-radius:99px;overflow:hidden;">
+            <div style="height:100%;width:${s.pct}%;background:${col};border-radius:99px;transition:width .6s ease;"></div>
+          </div>
+          <div style="font-size:.72rem;font-weight:600;color:${col};width:32px;text-align:right;font-family:'DM Mono',monospace;">${s.pct}%</div>
+        </div>`;
+      });
+      card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-family:'Fraunces',serif;font-size:.95rem;font-weight:700">${r.name||'Student'}</div>
+          <span class="pct-pill ${pillClass}">${overall}% overall</span>
+        </div>${bars}`;
+      pa.appendChild(card);
+    });
+  },200);
+}
+
+// ── SAMPLE DATA ──
+function loadSampleData(){
+  const students=[
+    {name:'Alex Thompson',strands:{number:{pct:71,score:5,total:7},algebra:{pct:57,score:4,total:7},measurement:{pct:71,score:5,total:7},space:{pct:43,score:3,total:7},statistics:{pct:57,score:4,total:7},probability:{pct:86,score:6,total:7}}},
+    {name:'Jordan Williams',strands:{number:{pct:43,score:3,total:7},algebra:{pct:29,score:2,total:7},measurement:{pct:57,score:4,total:7},space:{pct:71,score:5,total:7},statistics:{pct:43,score:3,total:7},probability:{pct:43,score:3,total:7}}},
+    {name:'Priya Sharma',strands:{number:{pct:86,score:6,total:7},algebra:{pct:71,score:5,total:7},measurement:{pct:86,score:6,total:7},space:{pct:57,score:4,total:7},statistics:{pct:71,score:5,total:7},probability:{pct:86,score:6,total:7}}},
+    {name:'Marcus Chen',strands:{number:{pct:57,score:4,total:7},algebra:{pct:43,score:3,total:7},measurement:{pct:43,score:3,total:7},space:{pct:57,score:4,total:7},statistics:{pct:29,score:2,total:7},probability:{pct:57,score:4,total:7}}},
+    {name:'Sophie Anderson',strands:{number:{pct:71,score:5,total:7},algebra:{pct:86,score:6,total:7},measurement:{pct:57,score:4,total:7},space:{pct:86,score:6,total:7},statistics:{pct:71,score:5,total:7},probability:{pct:71,score:5,total:7}}},
+    {name:'Liam Nguyen',strands:{number:{pct:29,score:2,total:7},algebra:{pct:43,score:3,total:7},measurement:{pct:29,score:2,total:7},space:{pct:43,score:3,total:7},statistics:{pct:43,score:3,total:7},probability:{pct:29,score:2,total:7}}}
+  ];
+  const records=students.map(s=>({
+    name:s.name,
+    timestamp:new Date(Date.now()-Math.random()*3600000).toISOString(),
+    strands:Object.fromEntries(Object.entries(s.strands).map(([k,v])=>([k,{...v,levelsTouched:['Y4','Y5']}])))
+  }));
+  const existing=getLocalResults();
+  setLocalResults([...existing,...records]);
+  refreshDashboard();
+}
+
+function clearData(){
+  if(confirm('Clear ALL student results from the server? This cannot be undone.')){
+    setLocalResults([]);
+    JBIN.clearResults().then(()=>{
+      refreshDashboard();
+    }).catch(()=>{
+      alert('Cleared local data. Server clear may have failed — refresh to check.');
+      refreshDashboard();
+    });
+  }
+}
+
+async function exportCSV(){
+  const results=await JBIN.fetchResults();
+  const local=getLocalResults();
+  const all=[...results,...local];
+  if(!all.length){alert('No data to export.');return;}
+  const results2=all;
+  const headers=['Student','Timestamp','Overall %',...STRAND_KEYS.map(k=>STRAND_META[k].name+' %')];
+  const rows=results2.map(r=>{
+    const overall=r.strands?Math.round(Object.values(r.strands).reduce((a,s)=>a+s.pct,0)/Object.keys(r.strands).length):0;
+    return [r.name||'',r.timestamp||'',overall,...STRAND_KEYS.map(k=>r.strands&&r.strands[k]?r.strands[k].pct:'')].join(',');
+  });
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='yr5_maths_results.csv';
+  a.click();
+}
+
+// ── CLASS CODES ──
+const ALL_STRANDS=['number','algebra','measurement','space','statistics','probability'];
+const STRAND_LABELS={number:'🔢 Number',algebra:'🔣 Algebra',measurement:'📏 Measurement',space:'📐 Space',statistics:'📊 Statistics',probability:'🎲 Probability'};
+const codeToggleState={};
+
+function toggleCodeForm(){
+  const wrap=document.getElementById('code-form-wrap');
+  const open=wrap.style.display==='block';
+  wrap.style.display=open?'none':'block';
+  if(!open)buildStrandToggles();
+}
+
+function buildStrandToggles(){
+  const area=document.getElementById('strand-toggles');
+  if(area.children.length)return; // already built
+  ALL_STRANDS.forEach(k=>{
+    codeToggleState[k]=false;
+    const btn=document.createElement('div');
+    btn.className='strand-tog';
+    btn.textContent=STRAND_LABELS[k];
+    btn.dataset.key=k;
+    btn.onclick=()=>{
+      codeToggleState[k]=!codeToggleState[k];
+      btn.classList.toggle('active',codeToggleState[k]);
+    };
+    area.appendChild(btn);
+  });
+}
+
+function createCode(){
+  const raw=document.getElementById('new-code-input').value.trim().toUpperCase();
+  if(!raw){
+    document.getElementById('new-code-input').style.borderColor='var(--warn)';
+    return;
+  }
+  document.getElementById('new-code-input').style.borderColor='';
+  const selected=ALL_STRANDS.filter(k=>codeToggleState[k]);
+  const config={
+    assignedStrands:selected.length>0?selected:null,
+    created:new Date().toISOString()
+  };
+  // Save config
+  localStorage.setItem('classConfig_'+raw,JSON.stringify(config));
+  // Track code list
+  const codes=JSON.parse(localStorage.getItem('classCodes')||'[]');
+  if(!codes.find(c=>c.code===raw))codes.push({code:raw,...config});
+  localStorage.setItem('classCodes',JSON.stringify(codes));
+  // Show confirmation
+  document.getElementById('code-val-display').textContent=raw;
+  const strandLabel=selected.length>0?selected.map(k=>STRAND_LABELS[k]).join(', '):'All 6 strands';
+  document.getElementById('code-detail-display').textContent='Strands: '+strandLabel;
+  document.getElementById('code-created').style.display='block';
+  // Reset toggles
+  ALL_STRANDS.forEach(k=>{codeToggleState[k]=false;});
+  document.querySelectorAll('.strand-tog').forEach(b=>b.classList.remove('active'));
+  document.getElementById('new-code-input').value='';
+  renderExistingCodes();
+}
+
+function renderExistingCodes(){
+  const area=document.getElementById('existing-codes');
+  const codes=JSON.parse(localStorage.getItem('classCodes')||'[]');
+  if(!codes.length){area.innerHTML='';return;}
+  area.innerHTML='<h4>Existing codes</h4>';
+  codes.forEach(c=>{
+    const strandLabel=c.assignedStrands?c.assignedStrands.map(k=>STRAND_LABELS[k]).join(', '):'All 6 strands';
+    const created=c.created?new Date(c.created).toLocaleDateString('en-AU'):'';
+    const row=document.createElement('div');
+    row.className='code-row';
+    row.innerHTML=`<span class="code-badge">${c.code}</span>
+      <span class="code-meta">${strandLabel}${created?' · Created '+created:''}</span>
+      <button class="code-del" onclick="deleteCode('${c.code}')">Delete</button>`;
+    area.appendChild(row);
+  });
+}
+
+function deleteCode(code){
+  if(!confirm('Delete code '+code+'?'))return;
+  localStorage.removeItem('classConfig_'+code);
+  const codes=JSON.parse(localStorage.getItem('classCodes')||'[]').filter(c=>c.code!==code);
+  localStorage.setItem('classCodes',JSON.stringify(codes));
+  renderExistingCodes();
+}
+
+// ── BIN ID MANAGEMENT ──
+function initBinIdPanel(){
+  const stored=localStorage.getItem('aimebee_binId')||'';
+  const input=document.getElementById('bin-id-input');
+  const badge=document.getElementById('bin-status-badge');
+  if(input) input.value=stored;
+  if(badge){
+    if(stored){
+      badge.textContent='Connected ✓';
+      badge.style.background='var(--accent-dim)';
+      badge.style.color='var(--accent)';
+    } else {
+      badge.textContent='Not connected';
+      badge.style.background='var(--warn-dim)';
+      badge.style.color='var(--warn)';
+    }
+  }
+}
+
+function saveBinId(){
+  const val=(document.getElementById('bin-id-input').value||'').trim();
+  if(!val){
+    alert('Please enter a Bin ID.');
+    return;
+  }
+  localStorage.setItem('aimebee_binId',val);
+  initBinIdPanel();
+  refreshDashboard();
+}
+
+function clearBinId(){
+  if(!confirm('Disconnect from JSONbin? The dashboard will no longer fetch live results until reconnected.')) return;
+  localStorage.removeItem('aimebee_binId');
+  document.getElementById('bin-id-input').value='';
+  initBinIdPanel();
+  refreshDashboard();
+}
+
+// Run on load
+renderExistingCodes();
+initBinIdPanel();
+
+// init
+refreshDashboard();
+</script>
+</body>
+</html>
