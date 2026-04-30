@@ -1214,65 +1214,12 @@ function showFinalResults(){
 // ═══════════════════════════════════════════════════════════
 // JSONBIN — cloud result storage
 // ═══════════════════════════════════════════════════════════
-const JBIN={
-  key:'$2a$10$Ux9lOEzPxIadMXPqbhcxY.ugQ63rE2Pu4L3Y4IKNXySL31LU3bqiC',
-  binId:null,// set after first save; stored in localStorage
-  baseUrl:'https://api.jsonbin.io/v3',
-
-  getBinId(){
-    return localStorage.getItem('aimebee_binId')||null;
-  },
-
-  async createBin(firstRecord){
-    const res=await fetch(`${this.baseUrl}/b`,{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'X-Master-Key':this.key,
-        'X-Bin-Name':'Aimebee-Yr5-Maths',
-        'X-Bin-Private':'true'
-      },
-      body:JSON.stringify({results:[firstRecord]})
-    });
-    if(!res.ok) throw new Error('Failed to create bin: '+res.status);
-    const data=await res.json();
-    const id=data.metadata.id;
-    localStorage.setItem('aimebee_binId',id);
-    return id;
-  },
-
-  async appendResult(record){
-    let binId=this.getBinId();
-    // No bin yet — create one
-    if(!binId){
-      await this.createBin(record);
-      return;
-    }
-    // Fetch existing data
-    const getRes=await fetch(`${this.baseUrl}/b/${binId}/latest`,{
-      headers:{'X-Master-Key':this.key}
-    });
-    if(!getRes.ok) throw new Error('Failed to fetch bin: '+getRes.status);
-    const existing=await getRes.json();
-    const arr=(existing.record&&existing.record.results)||[];
-    arr.push(record);
-    // Update bin
-    const putRes=await fetch(`${this.baseUrl}/b/${binId}`,{
-      method:'PUT',
-      headers:{
-        'Content-Type':'application/json',
-        'X-Master-Key':this.key
-      },
-      body:JSON.stringify({results:arr})
-    });
-    if(!putRes.ok) throw new Error('Failed to update bin: '+putRes.status);
-  }
-};
+// ═══ GOOGLE APPS SCRIPT BACKEND ═══
+const GAS_URL='https://script.google.com/macros/s/AKfycbzztqhJj5N5lIAlaQT8ubqK-ywdkt4aZ2P9AgtnvUnr33TWoU0uv_ntFB1x07BRuqBX/exec';
 
 async function saveAndFinish(){
   const btn=document.querySelector('.action-btn.primary');
   if(btn){btn.disabled=true;btn.textContent='Submitting…';}
-
   const record={
     name:studentName,
     classCode:classCode||'',
@@ -1282,39 +1229,37 @@ async function saveAndFinish(){
   Object.entries(allStrandResults).forEach(([key,r])=>{
     record.strands[key]={score:r.score,total:r.total,pct:Math.round((r.score/r.total)*100),levelsTouched:r.levelsTouched};
   });
-
-  // Show submitting state
   document.getElementById('results-screen').innerHTML=`
     <div style="text-align:center;padding:80px 20px;max-width:500px;margin:0 auto;">
       <div style="font-size:3rem;margin-bottom:16px;">⏳</div>
       <h2 style="font-family:'Fraunces',serif;font-size:1.6rem;margin-bottom:12px;">Submitting results…</h2>
-      <p style="color:var(--muted);font-size:.9rem;">Please wait — sending to your teacher's dashboard.</p>
+      <p style="color:var(--muted);font-size:.9rem;">Please wait — sending to your teacher.</p>
     </div>`;
-
   try{
-    await JBIN.appendResult(record);
-    // Success screen
+    const res=await fetch(GAS_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(record)
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
     document.getElementById('results-screen').innerHTML=`
       <div style="text-align:center;padding:80px 20px;max-width:500px;margin:0 auto;">
         <div style="font-size:3rem;margin-bottom:16px;">✅</div>
         <h2 style="font-family:'Fraunces',serif;font-size:1.8rem;margin-bottom:12px;">Results Submitted!</h2>
         <p style="color:var(--muted);font-size:.95rem;line-height:1.7;margin-bottom:8px;">
-          Thank you, <strong>${studentName.split(' ')[0]}</strong>. Your results have been sent to your teacher automatically.
+          Thank you, <strong>${studentName.split(' ')[0]}</strong>. Results sent to your teacher.
         </p>
-        <p style="color:var(--muted);font-size:.88rem;line-height:1.7;">
-          You can now close this tab.
-        </p>
+        <p style="color:var(--muted);font-size:.88rem;">You can now close this tab.</p>
       </div>`;
-  } catch(err){
-    // Fallback — offer download if network fails
+  }catch(err){
     document.getElementById('results-screen').innerHTML=`
       <div style="text-align:center;padding:60px 20px;max-width:500px;margin:0 auto;">
         <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
         <h2 style="font-family:'Fraunces',serif;font-size:1.6rem;margin-bottom:12px;">Connection issue</h2>
         <p style="color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:20px;">
-          Could not reach the server. Please download your results file and hand it to your teacher.
+          Could not reach the server. Download your results file and hand it to your teacher.
         </p>
-        <button onclick="downloadFallback(${JSON.stringify(JSON.stringify(record))})"
+        <button onclick="downloadFallback('${encodeURIComponent(JSON.stringify(record))}')"
           style="background:var(--text);color:#fff;border:none;border-radius:10px;padding:12px 28px;
           font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;">
           Download Results File
@@ -1323,9 +1268,9 @@ async function saveAndFinish(){
   }
 }
 
-function downloadFallback(recordStr){
-  const record=JSON.parse(recordStr);
-  const filename=`result_${record.name.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.json`;
+function downloadFallback(encoded){
+  const record=JSON.parse(decodeURIComponent(encoded));
+  const filename='result_'+record.name.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.json';
   const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
