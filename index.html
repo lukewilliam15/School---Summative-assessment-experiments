@@ -1236,12 +1236,12 @@ async function saveAndFinish(){
       <p style="color:var(--muted);font-size:.9rem;">Please wait — sending to your teacher.</p>
     </div>`;
   try{
-    const res=await fetch(GAS_URL,{
+    await fetch(GAS_URL,{
       method:'POST',
-      headers:{'Content-Type':'text/plain'},
+      mode:'no-cors',
       body:JSON.stringify(record)
     });
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    // no-cors means we can't read the response, but the POST reaches Apps Script
     document.getElementById('results-screen').innerHTML=`
       <div style="text-align:center;padding:80px 20px;max-width:500px;margin:0 auto;">
         <div style="font-size:3rem;margin-bottom:16px;">✅</div>
