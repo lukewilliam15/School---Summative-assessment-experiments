@@ -887,16 +887,64 @@ let assignedStrands=null;
 let allStrandResults={};
 let quizState={};
 
+// ── SESSION PERSISTENCE (survives page refresh) ──
+function saveSession(){
+  try{
+    sessionStorage.setItem('aimebee_session',JSON.stringify({
+      studentName,classCode,assignedStrands,
+      allStrandResults,quizState,
+      activeScreen:getActiveScreen()
+    }));
+  }catch(e){}
+}
+
+function getActiveScreen(){
+  if(document.getElementById('quiz-screen').style.display!=='none') return 'quiz';
+  if(document.getElementById('strand-selector').style.display!=='none') return 'strands';
+  if(document.getElementById('results-screen').style.display!=='none') return 'results';
+  return 'name';
+}
+
+function restoreSession(){
+  try{
+    const raw=sessionStorage.getItem('aimebee_session');
+    if(!raw) return false;
+    const s=JSON.parse(raw);
+    if(!s.studentName) return false;
+    studentName=s.studentName;
+    classCode=s.classCode||'';
+    assignedStrands=s.assignedStrands||null;
+    allStrandResults=s.allStrandResults||{};
+    quizState=s.quizState||{};
+    return s.activeScreen||'strands';
+  }catch(e){return false;}
+}
+
+function clearSession(){
+  sessionStorage.removeItem('aimebee_session');
+}
+
 function beginAssessment(){
   const n=document.getElementById('student-name').value.trim();
   if(!n){document.getElementById('student-name').style.borderColor='var(--warn)';return;}
   studentName=n;
-  classCode=(document.getElementById('class-code-input').value||'').trim().toUpperCase();
-  // Load assigned strands from class code config if present
+  const rawCode=(document.getElementById('class-code-input').value||'').trim().toUpperCase();
+
+  // Decode strand assignments encoded in the code suffix
+  // Format: CODENAME:nu,al,me  (2-char abbreviations)
+  const abbrMap={nu:'number',al:'algebra',me:'measurement',sp:'space',st:'statistics',pr:'probability'};
   assignedStrands=null;
+  classCode=rawCode;
+
+  if(rawCode.includes(':')){
+    const parts=rawCode.split(':');
+    classCode=parts[0];
+    const abbrs=parts[1].split(',').map(a=>a.trim());
+    const decoded=abbrs.map(a=>abbrMap[a]).filter(Boolean);
+    if(decoded.length>0) assignedStrands=decoded;
+  }
+
   if(classCode){
-    const cfg=JSON.parse(localStorage.getItem('classConfig_'+classCode)||'null');
-    if(cfg&&cfg.assignedStrands)assignedStrands=cfg.assignedStrands;
     const pill=document.getElementById('header-code-pill');
     pill.textContent='Class: '+classCode;
     pill.style.display='inline';
@@ -960,26 +1008,58 @@ function startStrand(key){
     answered:false,
     qPointer:{Y3:0,Y4:0,Y5:0,Y6:0},
     usedVariants:{},
-    usedDescriptors:[]
+    usedDescriptors:[],
+    usedVariantIds:[]
   };
   renderQuestion();
 }
 
 function getQuestion(level){
-  const qs=STRANDS[quizState.strand].questions[level]||[];
-  // Build pool: descriptors at this level not yet used in this strand session
-  let pool=qs.filter(d=>!(quizState.usedDescriptors||[]).includes(d.code));
-  // If all descriptors exhausted at this level, fall back to any available
-  if(!pool.length) pool=qs.length?qs:STRANDS[quizState.strand].questions['Y5']||[];
-  if(!pool.length) return null;
-  // Pick a descriptor (prefer unused)
-  const d=pool[quizState.qPointer[level]%pool.length];
-  // Mark descriptor used
-  if(!quizState.usedDescriptors) quizState.usedDescriptors=[];
-  if(!quizState.usedDescriptors.includes(d.code)) quizState.usedDescriptors.push(d.code);
-  quizState.qPointer[level]=(quizState.qPointer[level]||0)+1;
-  const variant=pickVariant(d,quizState.usedVariants);
-  return {...variant,opts:randomiseOptions(variant.opts)};
+  const strand=quizState.strand;
+  // Build a flat pool of ALL variants across ALL levels for this strand
+  // so we can guarantee zero repeats across the entire strand session
+  const allLevels=['Y3','Y4','Y5','Y6'];
+
+  // Collect every descriptor across all levels
+  let pool=[];
+  allLevels.forEach(lv=>{
+    const qs=STRANDS[strand].questions[lv]||[];
+    qs.forEach(d=>{
+      d.variants.forEach((v,vi)=>{
+        const uid=d.code+'__'+vi;
+        if(!quizState.usedVariantIds.includes(uid)){
+          pool.push({d,vi,lv,uid});
+        }
+      });
+    });
+  });
+
+  // Prefer current level, then adjacent levels, then any remaining
+  const preferred=pool.filter(p=>p.lv===level);
+  const adjacent=pool.filter(p=>p.lv!==level);
+  const ordered=[...preferred,...adjacent];
+
+  if(!ordered.length){
+    // Absolute exhaustion — reset used list and start over (edge case only)
+    quizState.usedVariantIds=[];
+    const fallback=STRANDS[strand].questions[level]||STRANDS[strand].questions['Y5']||[];
+    if(!fallback.length)return null;
+    const d=fallback[0];
+    const v=d.variants[0];
+    return {...v,code:d.code,descriptor:d.descriptor,opts:randomiseOptions(v.opts)};
+  }
+
+  // Pick from preferred (current level) if available, else any
+  const pick=ordered[Math.floor(Math.random()*Math.min(ordered.length,preferred.length||ordered.length))];
+  quizState.usedVariantIds.push(pick.uid);
+
+  const variant=pick.d.variants[pick.vi];
+  return {
+    ...variant,
+    code:pick.d.code,
+    descriptor:pick.d.descriptor,
+    opts:randomiseOptions(variant.opts)
+  };
 }
 
 function renderQuestion(){
@@ -1045,6 +1125,7 @@ function handleAnswer(chosen,idx,q){
     descriptor:q.descriptor,code:q.code
   });
   quizState.qPointer[quizState.level]=(quizState.qPointer[quizState.level]||0)+1;
+  saveSession();
 
   const fb=document.createElement('div');
   fb.className=`feedback-box ${isCorrect?'correct':'incorrect'}`;
@@ -1079,9 +1160,11 @@ function finishStrand(){
   const correct=quizState.history.filter(h=>h.correct).length;
   allStrandResults[key]={
     score:correct,total:quizState.history.length,
+    pct:Math.round((correct/quizState.history.length)*100),
     history:[...quizState.history],
     levelsTouched:[...new Set(quizState.history.map(h=>h.level))]
   };
+  saveSession();
   document.getElementById('quiz-screen').style.display='none';
   document.getElementById('strand-selector').style.display='block';
   buildStrandGrid();
@@ -1242,6 +1325,7 @@ async function saveAndFinish(){
       body:JSON.stringify(record)
     });
     // no-cors means we can't read the response, but the POST reaches Apps Script
+    clearSession();// clear saved session so next student starts fresh
     document.getElementById('results-screen').innerHTML=`
       <div style="text-align:center;padding:80px 20px;max-width:500px;margin:0 auto;">
         <div style="font-size:3rem;margin-bottom:16px;">✅</div>
@@ -1357,6 +1441,37 @@ function toggleReadAloud(){
 
 // Stop reading aloud when navigating away
 function stopRA(){RA.stop();}
+
+// ── PAGE LOAD: restore session if student refreshed ──
+(function(){
+  const screen=restoreSession();
+  if(!screen){return;}// no session — stay on name screen
+
+  // Rebuild header code pill
+  if(classCode){
+    const pill=document.getElementById('header-code-pill');
+    if(pill){pill.textContent='Class: '+classCode;pill.style.display='inline';}
+  }
+  // assignedStrands is already restored from sessionStorage — no localStorage lookup needed
+
+  // Hide name screen
+  document.getElementById('name-screen').style.display='none';
+
+  if(screen==='quiz'&&quizState.strand){
+    // Restore mid-strand — rebuild the quiz screen to current question
+    document.getElementById('strand-selector').style.display='none';
+    document.getElementById('quiz-screen').style.display='block';
+    document.documentElement.style.setProperty('--strand-color-current',STRANDS[quizState.strand].color);
+    document.getElementById('strand-label').textContent=STRANDS[quizState.strand].name;
+    renderQuestion();
+  } else if(screen==='strands'||screen==='results'){
+    // Restore strand selector
+    document.getElementById('strand-selector').style.display='block';
+    document.getElementById('welcome-heading').textContent=`Hello, ${studentName.split(' ')[0]}! Choose a strand.`;
+    buildStrandGrid();
+  }
+})();
+
 RA.init();
 
 </script>
